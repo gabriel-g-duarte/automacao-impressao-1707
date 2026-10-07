@@ -15,13 +15,14 @@ class AppAutomacao:
     def __init__(self, root):
         self.root = root
         self.root.title("Painel de Configuração - WinThor 1707")
-        self.root.geometry("560x480")
+        self.root.geometry("580x500")
         self.root.resizable(False, False)
 
         self.pasta_projeto = tk.StringVar(value=BASE_DIR)
         self.nome_impressora = tk.StringVar(value="WMS2")
         self.capturando_coordenada = False
 
+        # Mapeamento completo dos 9 pontos de clique utilizados pelo AutoHotkey
         self.mapeamento_coords = {
             "1. Campo de Código do Produto": "CampoCodigo",
             "2. Botão Imprimir (Visualização)": "BotaoImprimir2",
@@ -29,8 +30,9 @@ class AppAutomacao:
             "4. Seleção Impressora WMS 2": "ImpressoraWMS2",
             "5. Botão OK (Impressora)": "BotaoOK",
             "6. Botão OK (Pop-up Informação)": "BotaoOK_Informacao",
-            "7. Botão Imprimir (Universal)": "BotaoImprimirUniversal",
-            "8. Botão Fechar (Visualização)": "BotaoFechar"
+            "7. Botão OK (Pop-up Atenção)": "BotaoOK_Atencao",
+            "8. Botão Imprimir (Universal)": "BotaoImprimirUniversal",
+            "9. Botão Fechar (Visualização)": "BotaoFechar"
         }
 
         self.coords_atuais = {
@@ -40,6 +42,7 @@ class AppAutomacao:
             "ImpressoraWMS2_X": 2822, "ImpressoraWMS2_Y": 448,
             "BotaoOK_X": 2996, "BotaoOK_Y": 657,
             "BotaoOK_Informacao_X": 2883, "BotaoOK_Informacao_Y": 554,
+            "BotaoOK_Atencao_X": 2874, "BotaoOK_Atencao_Y": 550,
             "BotaoImprimirUniversal_X": 880, "BotaoImprimirUniversal_Y": 404,
             "BotaoFechar_X": 2410, "BotaoFechar_Y": 35
         }
@@ -65,7 +68,7 @@ class AppAutomacao:
         ttk.Label(self.container, text="Nome da Impressora Padrão:", font=("Segoe UI", 10, "bold")).pack(anchor="w")
         ttk.Entry(self.container, textvariable=self.nome_impressora).pack(fill="x", pady=(2, 15))
 
-        btn_coords = ttk.Button(self.container, text="📍 Configurar Localização do Ponteiro (Coordenadas 1-8)", command=self.criar_tela_ponteiro)
+        btn_coords = ttk.Button(self.container, text="📍 Configurar Localização do Ponteiro (Coordenadas 1-9)", command=self.criar_tela_ponteiro)
         btn_coords.pack(fill="x", ipady=5, pady=(0, 15))
 
         btn_salvar = ttk.Button(self.container, text="💾 Salvar Configurações no Projeto", command=self.salvar_configuracoes)
@@ -76,7 +79,7 @@ class AppAutomacao:
 
         ttk.Label(self.container, text="🎯 Capturar Coordenadas do Ponteiro", font=("Segoe UI", 14, "bold")).pack(anchor="w", pady=(0, 10))
 
-        ttk.Label(self.container, text="Selecione qual ponto deseja alterar (1 a 8):", font=("Segoe UI", 10, "bold")).pack(anchor="w")
+        ttk.Label(self.container, text="Selecione qual ponto deseja alterar (1 a 9):", font=("Segoe UI", 10, "bold")).pack(anchor="w")
         
         self.combo_coords = ttk.Combobox(self.container, values=list(self.mapeamento_coords.keys()), state="readonly", font=("Segoe UI", 10))
         self.combo_coords.current(0)
