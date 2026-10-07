@@ -67,6 +67,7 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 ### 1. Iniciar o Sistema
 * Dê um duplo clique no arquivo **`Iniciar tudo.bat`**.
 * O servidor Python será carregado silenciosamente em segundo plano (`pythonw`) e a janela de monitoramento do AutoHotkey surgirá na tela.
+* Caso seja necessário fechar o programa de monitoramento do script por f3, é só inicia-lo clicando 2 vezes em impressao_1707.ahk, assim o script já fica ativo em segundo plano. O monitoramento do script é criado pelo própio script, caso ele seja apenas fechado clicando no X ele fecha o monitor apenas.
 
 ### 2. Sincronizar os Produtos pelo Google Keep
 * Abra o [Google Keep](https://keep.google.com/) no navegador.
