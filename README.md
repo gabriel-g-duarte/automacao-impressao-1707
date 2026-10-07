@@ -43,7 +43,7 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 
 1. **Extensão Web (Chrome/Edge):** Lê as notas do Google Keep e envia a lista de códigos para a API Python via requisição HTTP POST (`http://127.0.0.1:8000/update`).
 2. **Servidor Python (`servidor_keep.py`):** Servidor HTTP leve em segundo plano que recebe os códigos e atualiza dinamicamente o arquivo `codigos.txt` na pasta configurada do projeto.
-3. **Painel de Configuração (`painel_control.py`):** Interface gráfica em Python/Tkinter para gerenciamento de diretórios, escolha da impressora padrão e calibração das coordenadas da tela (1 a 8).
+3. **Painel de Configuração (`painel_control.py`):** Interface gráfica em Python/Tkinter para gerenciamento de diretórios, escolha da impressora padrão e calibração das coordenadas da tela (1 a 9).
 4. **Script do AutoHotkey (`impressao_1707.ahk`):** Robô de automação com janela nativa de monitoramento de status. Executa o ciclo de digitação, confirmação, envio de comandos para visualização e impressão em lote no WinThor.
 
 ---
