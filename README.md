@@ -1,5 +1,5 @@
 # Tutorial de downloads
-* Instale o python em https://www.python.org/downloads/ na versão mais recente
+* Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
 * Baixe o arquivo .zip em realeses e siga os próximos passos
 
