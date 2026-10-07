@@ -1,3 +1,10 @@
+# Tutorial de downloads
+* Instale o python em https://www.python.org/downloads/ na versão mais recente
+* Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
+* Baixe o arquivo .zip em realeses e siga os próximos passos
+
+---
+
 # Em caso de dúvidas ou problemas durante o uso 
 * Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br ou D8059GD@dellys.com.br
 
