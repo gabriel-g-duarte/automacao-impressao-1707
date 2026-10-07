@@ -98,7 +98,7 @@ Se você mudar a resolução da tela ou mover a janela do WinThor:
 1. Feche os serviços correntes com o **`Encerrar tudo.bat`**.
 2. Abra o **`Configurar Painel.bat`**.
 3. Selecione a pasta do projeto atualizada e clique em **Configurar Localização do Ponteiro**.
-4. Escolha o ponto desejado (1 a 8), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
+4. Escolha o ponto desejado (1 a 9), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
 5. Clique em **💾 Salvar Configurações no Projeto**.
 
 ---
