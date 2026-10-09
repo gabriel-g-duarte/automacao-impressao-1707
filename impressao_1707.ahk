@@ -12,8 +12,8 @@ global JanelaTarget          := "1707 - Consultas Auxiliares - Consultar Produto
 global TituloPrincipal       := "1707" 
 
 global TitulosVisualizacao   := ["Visualizando Impressão", "View Print", "Print Preview", "Preview", "Visualizando Impressão (Remoto)"]     
-global TitulosImpressora     := ["Imprimir", "Print", "Imprimir (Remoto)"]                    
-global TitulosUniversal      := ["Imprimir", "Print"]                    
+global TitulosImpressora     := ["Imprimir", "Print", "Imprimir (Remoto)", "Print (Remoto)"]                    
+global TitulosUniversal      := ["Imprimir", "Print", "Universal Printer", "Universal Printer (Remoto)"]                    
 global TitulosInformacao     := ["Informação", "Information", "Inform", "Informação (Remoto)"]
 global TitulosAtencao        := ["Atenção", "Attention", "Atenção (Remoto)"]
 global TitulosProgresso      := ["Imprimindo", "Printing", "Imprimindo (Remoto)"]
@@ -379,10 +379,7 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
                 return false
 
             if ExisteAlgumaJanela(TitulosAtencao) {
-                ; Avisa no painel que o código duplicou/juntou e vai repetir
                 AtualizarMonitorAHK("aviso", codigo, contador, total)
-                
-                ; Clica no botão OK da janela de Atenção (9º clique)
                 FocarEclicar(BotaoOK_Atencao_X, BotaoOK_Atencao_Y)
                 Sleep(200)
                 deuAtencao := true
@@ -409,7 +406,6 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
             Sleep(50)
         }
 
-        ; Se deu janela de Atenção, reinicia o loop para limpar do zero e colar novamente
         if (deuAtencao) {
             Sleep(150)
             continue
@@ -417,17 +413,28 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
 
         Sleep(50)
 
-        ; 4. Loop do botão Imprimir (0,4s / 400ms)
+        ; 4. Clica no botão Imprimir e AGUARDA OBRIGATORIAMENTE a janela de seleção abrir
         tempoImp := 0
-        while !ExisteAlgumaJanela(TitulosImpressora) && !ExisteAlgumaJanela(TitulosUniversal) && (tempoImp < 25) {
-            tempoImp++
+        janelaImpressoraAberta := false
+
+        while (tempoImp < 50) { ; Tenta por até 20 segundos
+            if ExisteAlgumaJanela(TitulosImpressora) || ExisteAlgumaJanela(TitulosUniversal) {
+                janelaImpressoraAberta := true
+                break
+            }
             FocarEclicar(BotaoImprimir2_X, BotaoImprimir2_Y)
             Sleep(400)
+            tempoImp++
         }
 
-        Sleep(50)
+        ; Se mesmo após as tentativas a janela de impressora NÃO abriu, interrompe com erro
+        if (!janelaImpressoraAberta) {
+            return false
+        }
 
-        ; 5. Confirmação da impressora
+        Sleep(100)
+
+        ; 5. Confirmação da impressora (SÓ roda se a janela realmente abriu)
         if (impressoraPadrao = "WMS2" || impressoraPadrao = "WMS 2") {
             FocarEclicar(BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y)
             Sleep(100)
