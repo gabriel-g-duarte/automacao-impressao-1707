@@ -1,3 +1,10 @@
+# Tutorial de downloads
+* Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
+* Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
+* Baixe o arquivo .zip em realeses e siga os próximos passos
+
+---
+
 # Em caso de dúvidas ou problemas durante o uso 
 * Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br ou D8059GD@dellys.com.br
 
@@ -36,7 +43,7 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 
 1. **Extensão Web (Chrome/Edge):** Lê as notas do Google Keep e envia a lista de códigos para a API Python via requisição HTTP POST (`http://127.0.0.1:8000/update`).
 2. **Servidor Python (`servidor_keep.py`):** Servidor HTTP leve em segundo plano que recebe os códigos e atualiza dinamicamente o arquivo `codigos.txt` na pasta configurada do projeto.
-3. **Painel de Configuração (`painel_control.py`):** Interface gráfica em Python/Tkinter para gerenciamento de diretórios, escolha da impressora padrão e calibração das coordenadas da tela (1 a 8).
+3. **Painel de Configuração (`painel_control.py`):** Interface gráfica em Python/Tkinter para gerenciamento de diretórios, escolha da impressora padrão e calibração das coordenadas da tela (1 a 9).
 4. **Script do AutoHotkey (`impressao_1707.ahk`):** Robô de automação com janela nativa de monitoramento de status. Executa o ciclo de digitação, confirmação, envio de comandos para visualização e impressão em lote no WinThor.
 
 ---
@@ -60,6 +67,7 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 ### 1. Iniciar o Sistema
 * Dê um duplo clique no arquivo **`Iniciar tudo.bat`**.
 * O servidor Python será carregado silenciosamente em segundo plano (`pythonw`) e a janela de monitoramento do AutoHotkey surgirá na tela.
+* Caso seja necessário fechar o programa de monitoramento do script por f3, é só inicia-lo clicando 2 vezes em impressao_1707.ahk, assim o script já fica ativo em segundo plano. O monitoramento do script é criado pelo própio script, caso ele seja apenas fechado clicando no X ele fecha o monitor apenas.
 
 ### 2. Sincronizar os Produtos pelo Google Keep
 * Abra o [Google Keep](https://keep.google.com/) no navegador.
@@ -91,7 +99,7 @@ Se você mudar a resolução da tela ou mover a janela do WinThor:
 1. Feche os serviços correntes com o **`Encerrar tudo.bat`**.
 2. Abra o **`Configurar Painel.bat`**.
 3. Selecione a pasta do projeto atualizada e clique em **Configurar Localização do Ponteiro**.
-4. Escolha o ponto desejado (1 a 8), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
+4. Escolha o ponto desejado (1 a 9), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
 5. Clique em **💾 Salvar Configurações no Projeto**.
 
 ---
