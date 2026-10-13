@@ -1,96 +1,69 @@
 import os
-import json
-import time
+import sys
 from datetime import datetime
+import json
+import openpyxl
 
-try:
-    import openpyxl
-except ImportError:
-    print("⚠️ A instalar biblioteca openpyxl...")
-    os.system("pip install openpyxl")
-    import openpyxl
+# Caminho do arquivo de configuração
+CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-STATUS_FILE = os.path.join(BASE_DIR, "status.json")
-ONEDRIVE_PATH = r"C:\Users\D8059GD\OneDrive - DFS Holding\Relatório Faltas 1707"
-
-MESES = {
-    "01": "Janeiro", "02": "Fevereiro", "03": "Março", "04": "Abril",
-    "05": "Maio", "06": "Junho", "07": "Julho", "08": "Agosto",
-    "09": "Setembro", "10": "Outubro", "11": "Novembro", "12": "Dezembro"
-}
-
-def salvar_log_excel(codigo, status_texto="Concluido"):
-    agora = datetime.now()
-    ano = agora.strftime("%Y")
-    mes_num = agora.strftime("%m")
-    nome_aba = MESES.get(mes_num, f"Mês {mes_num}")
-    
-    # 1. Pasta apenas com o ANO
-    pasta_ano = os.path.join(ONEDRIVE_PATH, ano)
-    os.makedirs(pasta_ano, exist_ok=True)
-    
-    # 2. Ficheiro Excel do Ano (.xlsx)
-    caminho_excel = os.path.join(pasta_ano, f"Relatorio_Faltas_{ano}.xlsx")
-    
-    try:
-        # Carrega o ficheiro se já existir ou cria um novo
-        if os.path.exists(caminho_excel):
-            wb = openpyxl.load_workbook(caminho_excel)
-        else:
-            wb = openpyxl.Workbook()
-            # Remove a aba genérica "Sheet" criada por padrão
-            if "Sheet" in wb.sheetnames:
-                wb.remove(wb["Sheet"])
-        
-        # 3. Obtém ou cria a aba do MÊS atual
-        if nome_aba in wb.sheetnames:
-            ws = wb[nome_aba]
-        else:
-            ws = wb.create_sheet(title=nome_aba)
-            # Adiciona o cabeçalho na primeira linha da nova aba
-            ws.append(["Data", "Hora", "Codigo_Produto", "Status"])
-        
-        # 4. Adiciona a linha com os dados
-        data_str = agora.strftime("%d/%m/%Y")
-        hora_str = agora.strftime("%H:%M:%S")
-        ws.append([data_str, hora_str, codigo, status_texto])
-        
-        # Guarda as alterações no ficheiro
-        wb.save(caminho_excel)
-        print(f"✅ [LOG REGISTADO] Código {codigo} gravado na aba '{nome_aba}' em: {caminho_excel}")
-
-    except PermissionError:
-        print(f"⚠️ [AVISO] Feche o ficheiro Excel '{caminho_excel}' para permitir a gravação do log!")
-    except Exception as e:
-        print(f"❌ [ERRO AO GRAVAR EXCEL] {e}")
-
-def monitorar_status():
-    print(f"🔍 Monitorizando status.json em: {STATUS_FILE}")
-    print(f"📂 Destino OneDrive: {ONEDRIVE_PATH}\n")
-    
-    processados = set()
-    ultimo_mtime = 0
-    
-    while True:
-        time.sleep(0.3)
-        if not os.path.exists(STATUS_FILE):
-            continue
-            
+def carregar_pasta_projeto():
+    if os.path.exists(CONFIG_FILE):
         try:
-            mtime = os.path.getmtime(STATUS_FILE)
-            if mtime != ultimo_mtime:
-                ultimo_mtime = mtime
-                with open(STATUS_FILE, "r", encoding="utf-8-sig") as f:
-                    dados = json.load(f)
-                
-                codigo = str(dados.get("codigo_atual", "")).strip()
-                
-                if codigo and codigo not in ("-", "Concluído", "") and codigo not in processados:
-                    salvar_log_excel(codigo, "Concluido")
-                    processados.add(codigo)
+            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+                return cfg.get("PASTA_PROJETO", os.path.dirname(os.path.abspath(__file__)))
         except Exception:
             pass
+    return os.path.dirname(os.path.abspath(__file__))
+
+def registrar_codigo_no_excel(codigo, status_impressao="Concluído"):
+    pasta_destino = carregar_pasta_projeto()
+    caminho_excel = os.path.join(pasta_destino, "relatorio_impressao.xlsx")
+
+    # Data e Horário atual
+    agora = datetime.now()
+    data_str = agora.strftime("%d/%m/%Y")
+    horario_str = agora.strftime("%H:%M:%S")
+
+    # Garante que o código seja tratado como string limpa
+    codigo_str = str(codigo).strip()
+
+    # 1. Se a planilha não existe, cria do zero com os cabeçalhos
+    if not os.path.exists(caminho_excel):
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Relatório Impressão"
+        ws.append(["Código", "Data", "Horário", "Status"])
+    else:
+        wb = openpyxl.load_workbook(caminho_excel)
+        ws = wb.active
+
+    # 2. Varre as linhas existentes para verificar se o código já existe
+    encontrado = False
+    for row in range(2, ws.max_row + 1):
+        codigo_celula = str(ws.cell(row=row, column=1).value or "").strip()
+        
+        if codigo_celula == codigo_str:
+            # Encontrou o código repetido: apenas atualiza o horário, data e status
+            ws.cell(row=row, column=2).value = data_str
+            ws.cell(row=row, column=3).value = horario_str
+            ws.cell(row=row, column=4).value = status_impressao
+            encontrado = True
+            break
+
+    # 3. Se não encontrou o código na planilha, adiciona uma nova linha
+    if not encontrado:
+        ws.append([codigo_str, data_str, horario_str, status_impressao])
+
+    # Salva e fecha a planilha
+    wb.save(caminho_excel)
+    wb.close()
 
 if __name__ == "__main__":
-    monitorar_status()
+    # Permite receber o código via linha de comando ou teste direto
+    if len(sys.argv) > 1:
+        cod = sys.argv[1]
+        registrar_codigo_no_excel(cod)
+    else:
+        print("Uso: python registrar_relatorio.py <codigo>")
