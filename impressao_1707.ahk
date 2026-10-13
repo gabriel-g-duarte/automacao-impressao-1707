@@ -1,22 +1,18 @@
 ; =====================================================================
-;  AUTOMAÇÃO DE IMPRESSÃO EM LOTE - WinThor 1707 (COM RETRY DE ATENÇÃO)
+;  AUTOMAÇÃO DE IMPRESSÃO EM LOTE - WinThor 1707 (ESPERA INFINITA UNIVERSAL PRINTER)
 ; =====================================================================
 
 #Requires AutoHotkey v2.0
 #SingleInstance Force
-SetTitleMatchMode(2)
+SetTitleMatchMode(2) ; Modo Parcial por padrão
 
-; --------------------- CONFIGURAÇÕES DE JANELAS E RDP ---------------------
+; --------------------- CONFIGURAÇÕES DE JANELAS ---------------------
 
-global JanelaTarget          := "1707 - Consultas Auxiliares - Consultar Produtos" 
-global TituloPrincipal       := "1707" 
-
-global TitulosVisualizacao   := ["Visualizando Impressão", "View Print", "Print Preview", "Preview", "Visualizando Impressão (Remoto)"]     
-global TitulosImpressora     := ["Imprimir", "Print", "Imprimir (Remoto)", "Print (Remoto)"]                    
-global TitulosUniversal      := ["Imprimir", "Print", "Universal Printer", "Universal Printer (Remoto)"]                    
-global TitulosInformacao     := ["Informação", "Information", "Inform", "Informação (Remoto)"]
-global TitulosAtencao        := ["Atenção", "Attention", "Atenção (Remoto)"]
-global TitulosProgresso      := ["Imprimindo", "Printing", "Imprimindo (Remoto)"]
+global JanelaTarget          := "1707 - Consultas Auxiliares - Consultar Produtos (Remoto)" 
+global TitulosVisualizacao   := ["Visualizando Impressão (Remoto)", "Visualizando Impressão"]     
+global TitulosInformacao     := ["Informação (Remoto)", "Informação", "Information"]
+global TitulosAtencao        := ["Atenção (Remoto)", "Atenção", "Attention"]
+global TitulosProgresso      := ["Imprimindo (Remoto)", "Imprimindo", "Printing"]
 
 ; --------------------- COORDENADAS PADRÃO ---------------------
 
@@ -46,6 +42,7 @@ global ArquivoCodigos           := A_ScriptDir "\codigos.txt"
 global impressoraPadrao         := "WMS2"
 global PastaProjetoGlobal       := ""
 global UltimaModificacao        := ""
+global PrimeiraExecucao         := true ; Controla a exibição do menu na 1ª alteração do txt
 
 ; Variáveis da Janela de Monitoramento
 global MonitorGui := ""
@@ -64,8 +61,25 @@ F3::ExitApp()
 F4::ProcessarTextoClipboard()  
 
 ; =====================================================================
-;  FUNÇÕES AUXILIARES
+;  FUNÇÕES DE DETECÇÃO (MODO EXATO PARA IMPRESSORAS)
 ; =====================================================================
+
+; Esta função força o AutoHotkey a buscar o nome 100% igual, evitando falsos positivos.
+VerificarJanelaExata(listaTitulosExatos) {
+    prevMode := A_TitleMatchMode
+    SetTitleMatchMode(3) ; 3 = Correspondência Exata
+    
+    hwndEncontrado := 0
+    for t in listaTitulosExatos {
+        if (WinExist(t)) {
+            hwndEncontrado := WinExist(t)
+            break
+        }
+    }
+    
+    SetTitleMatchMode(prevMode) ; Volta para o modo padrão
+    return hwndEncontrado
+}
 
 ExisteAlgumaJanela(listaTitulos) {
     for t in listaTitulos {
@@ -75,8 +89,31 @@ ExisteAlgumaJanela(listaTitulos) {
     return false
 }
 
+AguardarJanelaFechar(hwnd, timeoutSegundos := 10) {
+    if (!hwnd)
+        return
+    inicio := A_TickCount
+    limiteMs := timeoutSegundos * 1000
+
+    while (WinExist("ahk_id " . hwnd) && (A_TickCount - inicio) < limiteMs) {
+        Sleep(100)
+    }
+}
+
+; Nova função rápida usada apenas APÓS confirmar a impressão (10ms)
+AguardarJanelaFecharRapido(hwnd, timeoutSegundos := 10) {
+    if (!hwnd)
+        return
+    inicio := A_TickCount
+    limiteMs := timeoutSegundos * 1000
+
+    while (WinExist("ahk_id " . hwnd) && (A_TickCount - inicio) < limiteMs) {
+        Sleep(10) ; Check ultra-rápido de 10ms
+    }
+}
+
 ObterJanelaTop() {
-    global JanelaTarget, TitulosAtencao, TitulosInformacao, TitulosImpressora, TitulosUniversal, TitulosVisualizacao, TitulosProgresso
+    global JanelaTarget, TitulosAtencao, TitulosInformacao, TitulosVisualizacao, TitulosProgresso
 
     for t in TitulosAtencao {
         if WinExist(t)
@@ -90,18 +127,22 @@ ObterJanelaTop() {
         if WinExist(t)
             return t
     }
-    for t in TitulosImpressora {
-        if WinExist(t)
-            return t
-    }
-    for t in TitulosUniversal {
-        if WinExist(t)
-            return t
-    }
+    
+    ; Busca exata pela Universal Printer
+    hwndUniv := VerificarJanelaExata(["Imprimir", "Print", "Universal Printer"])
+    if (hwndUniv)
+        return "ahk_id " . hwndUniv
+
+    ; Busca exata pela Seleção de Impressora
+    hwndImp := VerificarJanelaExata(["Imprimir (Remoto)", "Print (Remoto)"])
+    if (hwndImp)
+        return "ahk_id " . hwndImp
+
     for t in TitulosVisualizacao {
         if WinExist(t)
             return t
     }
+    
     if WinExist(JanelaTarget)
         return JanelaTarget
 
@@ -131,6 +172,48 @@ EnviarTeclaDireta(tecla) {
         WinActivate(targetWin)
         Send(tecla)
     }
+}
+
+; =====================================================================
+;  FUNÇÕES DE ARQUIVO E INTERFACE DE SELEÇÃO DE IMPRESSORA
+; =====================================================================
+
+SalvarImpressoraConfig(modo) {
+    caminhoConfig := A_ScriptDir "\config.json"
+    if FileExist(caminhoConfig) {
+        txt := FileRead(caminhoConfig, "UTF-8")
+        txt := RegExReplace(txt, '("NOME_IMPRESSORA"\s*:\s*)"[^"]+"', '$1"' modo '"')
+        try {
+            fileObj := FileOpen(caminhoConfig, "w", "UTF-8")
+            fileObj.Write(txt)
+            fileObj.Close()
+        }
+    }
+}
+
+PedirImpressora() {
+    global impressoraPadrao
+    escolha := ""
+    
+    dlg := Gui("+AlwaysOnTop -MinimizeBox -MaximizeBox +ToolWindow", "Modo de Impressão")
+    dlg.SetFont("s10", "Segoe UI")
+    dlg.Add("Text", "w220 Center", "Selecione o modo de impressão:")
+    
+    btn1 := dlg.Add("Button", "w220 h35", "1 - Impressão direta")
+    btn1.OnEvent("Click", (*) => (escolha := "WMS2", dlg.Destroy()))
+    
+    btn2 := dlg.Add("Button", "w220 h35", "2 - Universal Printer")
+    btn2.OnEvent("Click", (*) => (escolha := "Universal", dlg.Destroy()))
+    
+    dlg.Show("AutoSize Center")
+    WinWaitClose(dlg)
+    
+    if (escolha != "") {
+        impressoraPadrao := escolha
+        SalvarImpressoraConfig(escolha) 
+        return true
+    }
+    return false
 }
 
 MonitorarArquivoCodigos() {
@@ -295,13 +378,20 @@ ProcessarTextoClipboard() {
 ; =====================================================================
 
 IniciarProcessamento(ehAutomatico := false) {
-    global impressoraPadrao, ArquivoCodigos, JanelaTarget
+    global impressoraPadrao, ArquivoCodigos, JanelaTarget, PrimeiraExecucao
     CarregarConfiguracao()
 
     if !WinExist(JanelaTarget) {
         if (!ehAutomatico)
             MsgBox("A janela do WinThor não foi encontrada!")
         return
+    }
+
+    ; Abre a janela de escolha APENAS no F2 ou na primeira vez que o .txt for modificado
+    if (!ehAutomatico || PrimeiraExecucao) {
+        if (!PedirImpressora())
+            return
+        PrimeiraExecucao := false ; Não pergunta mais nas próximas alterações automáticas
     }
 
     if !FileExist(ArquivoCodigos)
@@ -348,7 +438,7 @@ IniciarProcessamento(ehAutomatico := false) {
 ; =====================================================================
 
 ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
-    global impressoraPadrao, JanelaTarget, TitulosVisualizacao, TitulosImpressora, TitulosInformacao, TitulosAtencao, TitulosUniversal, TitulosProgresso
+    global impressoraPadrao, JanelaTarget, TitulosVisualizacao, TitulosInformacao, TitulosAtencao, TitulosProgresso
     global CampoCodigo_X, CampoCodigo_Y, BotaoImprimir2_X, BotaoImprimir2_Y
     global BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y, ImpressoraWMS2_X, ImpressoraWMS2_Y
     global BotaoOK_X, BotaoOK_Y, BotaoOK_Informacao_X, BotaoOK_Informacao_Y, BotaoOK_Atencao_X, BotaoOK_Atencao_Y
@@ -358,7 +448,7 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
     loop 2 {
         deuAtencao := false
 
-        ; 1. Foca o campo de código e limpa com Ctrl+A e BackSpace
+        ; 1. Foca o campo de código e limpa
         FocarEclicar(CampoCodigo_X, CampoCodigo_Y, 2)
         Sleep(50)
         EnviarTeclaDireta("^a")
@@ -413,25 +503,32 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
 
         Sleep(50)
 
-        ; 4. Clica no botão Imprimir e AGUARDA OBRIGATORIAMENTE a janela de seleção abrir
+        ; ==========================================================================
+        ; 4. Clica no botão Imprimir e AGUARDA A JANELA EXATA "Imprimir (Remoto)"
+        ; ==========================================================================
         tempoImp := 0
-        janelaImpressoraAberta := false
+        hwndSelecao := 0
 
         while (tempoImp < 50) { ; Tenta por até 20 segundos
-            if ExisteAlgumaJanela(TitulosImpressora) || ExisteAlgumaJanela(TitulosUniversal) {
-                janelaImpressoraAberta := true
+            
+            ; VERIFICAÇÃO 100% EXATA: Se a janela chama-se "Imprimir (Remoto)"
+            hwndSelecao := VerificarJanelaExata(["Imprimir (Remoto)", "Print (Remoto)"])
+            
+            if (hwndSelecao)
                 break
-            }
+
+            ; Se ainda não abriu, continua a clicar no botão de impressão do Preview
             FocarEclicar(BotaoImprimir2_X, BotaoImprimir2_Y)
             Sleep(400)
             tempoImp++
         }
 
-        ; Se mesmo após as tentativas a janela de impressora NÃO abriu, interrompe com erro
-        if (!janelaImpressoraAberta) {
+        ; Se passou 20 segundos e a janela "Imprimir (Remoto)" não apareceu, interrompe
+        if (!hwndSelecao) {
             return false
         }
 
+        WinActivate("ahk_id " . hwndSelecao)
         Sleep(100)
 
         ; 5. Confirmação da impressora (SÓ roda se a janela realmente abriu)
@@ -441,32 +538,53 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
             FocarEclicar(ImpressoraWMS2_X, ImpressoraWMS2_Y)
             Sleep(80)
             FocarEclicar(BotaoOK_X, BotaoOK_Y)
+            AguardarJanelaFecharRapido(hwndSelecao, 8) ; <--- Rápido
         } else {
+            ; FLUXO UNIVERSAL PRINTER:
+            ; Passo A: Clica no 1º OK da janela "Imprimir (Remoto)"
             FocarEclicar(BotaoOK_X, BotaoOK_Y)
-            Sleep(200)
-            if ExisteAlgumaJanela(TitulosUniversal) {
+            AguardarJanelaFechar(hwndSelecao, 5)
+
+            ; Passo B: Aguarda a 2ª janela (Universal Printer) abrir. ESPERA INFINITA (SEM TIMEOUT).
+            hwndUniv := 0
+            loop {
+                hwndEncontrado := VerificarJanelaExata(["Imprimir", "Print", "Universal Printer"])
+                if (hwndEncontrado && hwndEncontrado != hwndSelecao) {
+                    hwndUniv := hwndEncontrado
+                    break
+                }
+                Sleep(200) ; Checa a cada 200ms se a janela abriu
+            }
+
+            ; Passo C: Clica no botão Imprimir/OK da Universal Printer assim que ela abrir
+            if (hwndUniv) {
+                WinActivate("ahk_id " . hwndUniv)
+                Sleep(200)
                 FocarEclicar(BotaoImprimirUniversal_X, BotaoImprimirUniversal_Y)
+                
+                ; AQUI COMEÇA O 10MS! (Após clicar o OK no Universal Printer)
+                AguardarJanelaFecharRapido(hwndUniv, 8)
             }
         }
 
-        ; 6. Aguarda a janela "Imprimindo" sumir
+        ; 6. Aguarda a janela "Imprimindo" sumir (Com verificação rápida de 10ms)
         tempoProg := 0
-        while !ExisteAlgumaJanela(TitulosProgresso) && (tempoProg < 40) {
+        while !ExisteAlgumaJanela(TitulosProgresso) && (tempoProg < 200) { ; 200 loops * 10ms = 2s max pra aparecer
             tempoProg++
-            Sleep(30)
+            Sleep(10)
         }
 
         while ExisteAlgumaJanela(TitulosProgresso) {
-            Sleep(30)
+            Sleep(10)
         }
 
-        ; 7. Fecha a visualização imediatamente
+        ; 7. Fecha a visualização imediatamente (Ações rápidas com 10ms)
         FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-        Sleep(100)
+        Sleep(10)
 
         if ExisteAlgumaJanela(TitulosVisualizacao) {
             FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-            Sleep(100)
+            Sleep(10)
         }
 
         return true

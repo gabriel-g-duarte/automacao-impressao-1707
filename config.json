@@ -1,27 +1,27 @@
-{
+﻿{
     "PASTA_PROJETO": "C:\\Users\\D8059GD\\Documents\\automacao-impressao-1707",
     "NOME_IMPRESSORA": "WMS2",
     "TITULO_KEEP": "WinThor",
     "ARQUIVO_CODIGOS": "codigos.txt",
     "TIMEOUT": 15,
     "COORDENADAS": {
-        "CampoCodigo_X": 2262,
+        "CampoCodigo_X": 2255,
         "CampoCodigo_Y": 76,
-        "BotaoImprimir2_X": 1938,
+        "BotaoImprimir2_X": 1937,
         "BotaoImprimir2_Y": 35,
-        "BotaoTrocarImpressora_X": 2781,
+        "BotaoTrocarImpressora_X": 2773,
         "BotaoTrocarImpressora_Y": 314,
-        "ImpressoraWMS2_X": 2798,
-        "ImpressoraWMS2_Y": 445,
-        "BotaoOK_X": 2991,
+        "ImpressoraWMS2_X": 2809,
+        "ImpressoraWMS2_Y": 414,
+        "BotaoOK_X": 2996,
         "BotaoOK_Y": 657,
-        "BotaoOK_Informacao_X": 2865,
-        "BotaoOK_Informacao_Y": 549,
-        "BotaoOK_Atencao_X": 2880,
+        "BotaoOK_Informacao_X": 2883,
+        "BotaoOK_Informacao_Y": 554,
+        "BotaoOK_Atencao_X": 2874,
         "BotaoOK_Atencao_Y": 550,
-        "BotaoImprimirUniversal_X": 862,
-        "BotaoImprimirUniversal_Y": 405,
-        "BotaoFechar_X": 2418,
-        "BotaoFechar_Y": 37
+        "BotaoImprimirUniversal_X": 880,
+        "BotaoImprimirUniversal_Y": 404,
+        "BotaoFechar_X": 2410,
+        "BotaoFechar_Y": 35
     }
 }
