@@ -89,7 +89,6 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 | **`F1`** | **Pausar / Retomar** a automação em tempo real. |
 | **`F2`** | **Iniciar** o processamento em lote dos códigos salvos. |
 | **`F3`** | **Fechar / Encerrar** o script do AutoHotkey. |
-| **`F4`** | **Processar texto da área de transferência** (Clipboard) manualmente para `codigos.txt`. |
 
 ---
 
