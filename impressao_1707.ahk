@@ -1,5 +1,5 @@
 ; =====================================================================
-;  AUTOMAÇÃO DE IMPRESSÃO EM LOTE - WinThor 1707 (ESPERA INFINITA UNIVERSAL PRINTER)
+;  AUTOMAÇÃO DE IMPRESSÃO EM LOTE - WinThor 1707 (COM REGISTRO EM CSV)
 ; =====================================================================
 
 #Requires AutoHotkey v2.0
@@ -8,11 +8,11 @@ SetTitleMatchMode(2) ; Modo Parcial por padrão
 
 ; --------------------- CONFIGURAÇÕES DE JANELAS ---------------------
 
-global JanelaTarget          := "1707 - Consultas Auxiliares - Consultar Produtos (Remoto)" 
-global TitulosVisualizacao   := ["Visualizando Impressão (Remoto)", "Visualizando Impressão"]     
-global TitulosInformacao     := ["Informação (Remoto)", "Informação", "Information"]
-global TitulosAtencao        := ["Atenção (Remoto)", "Atenção", "Attention"]
-global TitulosProgresso      := ["Imprimindo (Remoto)", "Imprimindo", "Printing"]
+global JanelaTarget            := "1707 - Consultas Auxiliares - Consultar Produtos (Remoto)" 
+global TitulosVisualizacao    := ["Visualizando Impressão (Remoto)", "Visualizando Impressão"]     
+global TitulosInformacao      := ["Informação (Remoto)", "Informação", "Information"]
+global TitulosAtencao         := ["Atenção (Remoto)", "Atenção", "Attention"]
+global TitulosProgresso       := ["Imprimindo (Remoto)", "Imprimindo", "Printing"]
 
 ; --------------------- COORDENADAS PADRÃO ---------------------
 
@@ -22,8 +22,8 @@ global BotaoImprimir2_X         := 1937
 global BotaoImprimir2_Y         := 35
 global BotaoTrocarImpressora_X  := 2773        
 global BotaoTrocarImpressora_Y  := 314
-global ImpressoraWMS2_X         := 2822           
-global ImpressoraWMS2_Y         := 448
+global ImpressoraWMS2_X         := 2785
+global ImpressoraWMS2_Y         := 444
 global BotaoOK_X                := 2996           
 global BotaoOK_Y                := 657
 global BotaoOK_Informacao_X     := 2883
@@ -38,11 +38,11 @@ global BotaoFechar_Y            := 35
 
 global Timeout                  := 15
 global AutoIniciarAoMudar       := true
-global ArquivoCodigos           := A_ScriptDir "\codigos.txt"
+global ArquivoCodigos           := A_ScriptDir "\codigos.csv"
 global impressoraPadrao         := "WMS2"
 global PastaProjetoGlobal       := ""
 global UltimaModificacao        := ""
-global PrimeiraExecucao         := true ; Controla a exibição do menu na 1ª alteração do txt
+global PrimeiraExecucao         := true
 
 ; Variáveis da Janela de Monitoramento
 global MonitorGui := ""
@@ -61,13 +61,131 @@ F3::ExitApp()
 F4::ProcessarTextoClipboard()  
 
 ; =====================================================================
+;  GERADOR DE DEGRADÊ CINZA PARA O CABEÇALHO
+; =====================================================================
+
+CriarDegradeBMP(caminho, h := 48) {
+    if FileExist(caminho)
+        return
+    bufSize := 54 + (h * 4)
+    buf := Buffer(bufSize, 0)
+    
+    NumPut("UShort", 0x4D42, buf, 0)
+    NumPut("UInt", bufSize, buf, 2)
+    NumPut("UInt", 54, buf, 10)
+    
+    NumPut("UInt", 40, buf, 14)
+    NumPut("Int", 1, buf, 18)
+    NumPut("Int", -h, buf, 22)
+    NumPut("UShort", 1, buf, 26)
+    NumPut("UShort", 24, buf, 28)
+    NumPut("UInt", h * 4, buf, 34)
+    
+    c1 := [241, 243, 245]
+    c2 := [233, 236, 239]
+    offset := 54
+    Loop h {
+        i := A_Index - 1
+        ratio := i / (h - 1)
+        r := Round(c1[1] + (c2[1] - c1[1]) * ratio)
+        g := Round(c1[2] + (c2[2] - c1[2]) * ratio)
+        b := Round(c1[3] + (c2[3] - c1[3]) * ratio)
+        
+        NumPut("UChar", b, buf, offset)
+        NumPut("UChar", g, buf, offset + 1)
+        NumPut("UChar", r, buf, offset + 2)
+        NumPut("UChar", 0, buf, offset + 3)
+        offset += 4
+    }
+    
+    f := FileOpen(caminho, "w")
+    f.RawWrite(buf)
+    f.Close()
+}
+
+; =====================================================================
+;  JANELA DE MONITORAMENTO COM DUAS SEÇÕES CENTRALIZADAS
+; =====================================================================
+
+CriarJanelaMonitorAHK() {
+    global MonitorGui, TextStatus, TextProgresso, TextErro
+    
+    caminhoBmp := A_ScriptDir "\degrade_header.bmp"
+    CriarDegradeBMP(caminhoBmp, 52)
+
+    MonitorGui := Gui("+AlwaysOnTop -MaximizeBox", "Painel de Monitoramento - WinThor 1707")
+    MonitorGui.BackColor := "F8F9FA"
+    
+    ; Fundo do Card Branco Central
+    MonitorGui.Add("Text", "x14 y14 w416 h195 BackgroundFFFFFF +Border", "")
+
+    ; Cabeçalho com Degradê Cinza
+    if FileExist(caminhoBmp) {
+        MonitorGui.Add("Pic", "x15 y15 w414 h50", caminhoBmp)
+    } else {
+        MonitorGui.Add("Text", "x15 y15 w414 h50 BackgroundF1F3F5", "")
+    }
+
+    ; Título e Subtítulo do Cabeçalho (Centralizados)
+    MonitorGui.SetFont("s11 norm", "Segoe UI")
+    MonitorGui.Add("Text", "x28 y21 w388 Center BackgroundTrans c1F2937", "Status da execução")
+    
+    MonitorGui.SetFont("s9 norm", "Segoe UI")
+    MonitorGui.Add("Text", "x28 y43 w388 Center BackgroundTrans c6B7280", "Acompanhamento do processamento em tempo real")
+
+    ; Linha Divisória 1: Separa Cabeçalho do Corpo
+    MonitorGui.Add("Text", "x15 y65 w414 h1 BackgroundE2E8F0", "")
+
+    ; --- SEÇÃO 1: STATUS DA EXECUÇÃO (CENTRALIZADO) ---
+    MonitorGui.SetFont("s10 norm", "Segoe UI")
+    TextStatus := MonitorGui.Add("Text", "x28 y76 w388 r2 Center BackgroundFFFFFF c0284C7", "Aguardando início (Pressione F2)...")
+    
+    ; Linha Divisória 2: Separa a Caixa de Status da Caixa de Progresso
+    MonitorGui.Add("Text", "x28 y122 w388 h1 BackgroundE2E8F0", "")
+
+    ; --- SEÇÃO 2: PROGRESSO / CÓDIGOS (CENTRALIZADO) ---
+    MonitorGui.SetFont("s9 norm", "Segoe UI")
+    TextProgresso := MonitorGui.Add("Text", "x28 y132 w388 Center BackgroundFFFFFF c4B5563", "Códigos processados: 0 de 0")
+    
+    ; Mensagem de Erro / Detalhes (Centralizado)
+    TextErro := MonitorGui.Add("Text", "x28 y156 w388 r2 Center BackgroundFFFFFF cDC2626 Hidden", "")
+
+    MonitorGui.Show("x20 y20 w444 h223 NoActivate")
+}
+
+AtualizarMonitorAHK(status, codigoAtual:="-", contador:=0, total:=0, msgErro:="") {
+    global TextStatus, TextProgresso, TextErro
+    if (status = "imprimindo") {
+        TextStatus.Value := "Imprimindo código: " codigoAtual
+        TextStatus.Opt("c0284C7 Center")
+        TextProgresso.Value := "Progresso: " contador " de " total " processados"
+        TextErro.Visible := false
+    } else if (status = "aviso") {
+        TextStatus.Value := "Atenção: Código duplicado ou junta de campo! Reenviando: " codigoAtual
+        TextStatus.Opt("cD97706 Center")
+        TextProgresso.Value := "Limpando campo e repetindo código " contador " de " total
+        TextErro.Visible := false
+    } else if (status = "concluido") {
+        TextStatus.Value := "Impressão finalizada com sucesso!"
+        TextStatus.Opt("c16A34A Center")
+        TextProgresso.Value := "Total processado: " total " de " total " códigos"
+        TextErro.Visible := false
+    } else if (status = "erro") {
+        TextStatus.Value := "Ocorreu uma falha na execução"
+        TextStatus.Opt("cDC2626 Center")
+        TextProgresso.Value := "Parado no código " contador " de " total
+        TextErro.Value := "Código com erro: " codigoAtual "`nDetalhe: " msgErro
+        TextErro.Visible := true
+    }
+}
+
+; =====================================================================
 ;  FUNÇÕES DE DETECÇÃO (MODO EXATO PARA IMPRESSORAS)
 ; =====================================================================
 
-; Esta função força o AutoHotkey a buscar o nome 100% igual, evitando falsos positivos.
 VerificarJanelaExata(listaTitulosExatos) {
     prevMode := A_TitleMatchMode
-    SetTitleMatchMode(3) ; 3 = Correspondência Exata
+    SetTitleMatchMode(3)
     
     hwndEncontrado := 0
     for t in listaTitulosExatos {
@@ -77,7 +195,7 @@ VerificarJanelaExata(listaTitulosExatos) {
         }
     }
     
-    SetTitleMatchMode(prevMode) ; Volta para o modo padrão
+    SetTitleMatchMode(prevMode)
     return hwndEncontrado
 }
 
@@ -100,7 +218,6 @@ AguardarJanelaFechar(hwnd, timeoutSegundos := 10) {
     }
 }
 
-; Nova função rápida usada apenas APÓS confirmar a impressão (10ms)
 AguardarJanelaFecharRapido(hwnd, timeoutSegundos := 10) {
     if (!hwnd)
         return
@@ -108,7 +225,7 @@ AguardarJanelaFecharRapido(hwnd, timeoutSegundos := 10) {
     limiteMs := timeoutSegundos * 1000
 
     while (WinExist("ahk_id " . hwnd) && (A_TickCount - inicio) < limiteMs) {
-        Sleep(10) ; Check ultra-rápido de 10ms
+        Sleep(10)
     }
 }
 
@@ -128,12 +245,10 @@ ObterJanelaTop() {
             return t
     }
     
-    ; Busca exata pela Universal Printer
     hwndUniv := VerificarJanelaExata(["Imprimir", "Print", "Universal Printer"])
     if (hwndUniv)
         return "ahk_id " . hwndUniv
 
-    ; Busca exata pela Seleção de Impressora
     hwndImp := VerificarJanelaExata(["Imprimir (Remoto)", "Print (Remoto)"])
     if (hwndImp)
         return "ahk_id " . hwndImp
@@ -196,8 +311,9 @@ PedirImpressora() {
     escolha := ""
     
     dlg := Gui("+AlwaysOnTop -MinimizeBox -MaximizeBox +ToolWindow", "Modo de Impressão")
-    dlg.SetFont("s10", "Segoe UI")
-    dlg.Add("Text", "w220 Center", "Selecione o modo de impressão:")
+    dlg.BackColor := "F8F9FA"
+    dlg.SetFont("s10 norm", "Segoe UI")
+    dlg.Add("Text", "w220 Center c1F2937", "Selecione o modo de impressão:")
     
     btn1 := dlg.Add("Button", "w220 h35", "1 - Impressão direta")
     btn1.OnEvent("Click", (*) => (escolha := "WMS2", dlg.Destroy()))
@@ -231,51 +347,19 @@ MonitorarArquivoCodigos() {
     }
 }
 
-CriarJanelaMonitorAHK() {
-    global MonitorGui, TextStatus, TextProgresso, TextErro
-    MonitorGui := Gui("+Resize", "Painel de Monitoramento - WinThor 1707")
-    MonitorGui.SetFont("s10 bold", "Segoe UI")
-    MonitorGui.Add("Text", "cGray", "🖨️ Status da Impressão (Modo Direto F5):")
-    TextStatus := MonitorGui.Add("Text", "w360 r2 c0056b3", "Aguardando sincronização do Keep ou tecla F2...")
-    MonitorGui.SetFont("s9 norm", "Segoe UI")
-    TextProgresso := MonitorGui.Add("Text", "w360", "Códigos Processados: 0 / 0")
-    MonitorGui.SetFont("s9 bold", "Segoe UI")
-    TextErro := MonitorGui.Add("Text", "w360 r2 cRed Hidden", "")
-    MonitorGui.Show("x10 y10 w390 h160 NoActivate")
-}
-
-AtualizarMonitorAHK(status, codigoAtual:="-", contador:=0, total:=0, msgErro:="") {
-    global TextStatus, TextProgresso, TextErro
-    if (status = "imprimindo") {
-        TextStatus.Value := "Imprimindo Código: " codigoAtual
-        TextStatus.Opt("c0056b3")
-        TextProgresso.Value := "Progresso: " contador " de " total " processados"
-        TextErro.Visible := false
-    } else if (status = "aviso") {
-        TextStatus.Value := "⚠️ Código juntou/duplicou! Reenviando: " codigoAtual
-        TextStatus.Opt("cCa8a04")
-        TextProgresso.Value := "Limpando campo e repetindo código " contador " de " total
-        TextErro.Visible := false
-    } else if (status = "concluido") {
-        TextStatus.Value := "✅ Impressão Finalizada!"
-        TextStatus.Opt("c28a745")
-        TextProgresso.Value := "Total Processado: " total " de " total " códigos"
-        TextErro.Visible := false
-    } else if (status = "erro") {
-        TextStatus.Value := "⚠️ OCORREU UM ERRO!"
-        TextStatus.Opt("cCc0000")
-        TextProgresso.Value := "Parado no código " contador " de " total
-        TextErro.Value := "Erro no Código: " codigoAtual "`nDetalhe: " msgErro
-        TextErro.Visible := true
-    }
-}
-
 CarregarConfiguracao() {
     global ArquivoCodigos, Timeout, PastaProjetoGlobal, JanelaTarget, AutoIniciarAoMudar, impressoraPadrao
     global CampoCodigo_X, CampoCodigo_Y, BotaoImprimir2_X, BotaoImprimir2_Y
     global BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y, ImpressoraWMS2_X, ImpressoraWMS2_Y
     global BotaoOK_X, BotaoOK_Y, BotaoOK_Informacao_X, BotaoOK_Informacao_Y, BotaoOK_Atencao_X, BotaoOK_Atencao_Y
     global BotaoImprimirUniversal_X, BotaoImprimirUniversal_Y, BotaoFechar_X, BotaoFechar_Y
+
+    if FileExist(A_ScriptDir "\codigos.csv")
+        ArquivoCodigos := A_ScriptDir "\codigos.csv"
+    else if FileExist(A_ScriptDir "\codigos.txt")
+        ArquivoCodigos := A_ScriptDir "\codigos.txt"
+    else
+        ArquivoCodigos := A_ScriptDir "\codigos.csv"
 
     caminhoConfig := A_ScriptDir "\config.json"
     if FileExist(caminhoConfig) {
@@ -305,10 +389,8 @@ CarregarConfiguracao() {
             BotaoFechar_X            := GetCoord("BotaoFechar_X", BotaoFechar_X)
             BotaoFechar_Y            := GetCoord("BotaoFechar_Y", BotaoFechar_Y)
 
-            if RegExMatch(txt, '"PASTA_PROJETO"\s*:\s*"([^"]+)"', &m) {
+            if RegExMatch(txt, '"PASTA_PROJETO"\s*:\s*"([^"]+)"', &m)
                 PastaProjetoGlobal := StrReplace(m[1], "\\", "\")
-                ArquivoCodigos := PastaProjetoGlobal "\codigos.txt"
-            }
             if RegExMatch(txt, '"JANELA_TARGET"\s*:\s*"([^"]+)"', &m)
                 JanelaTarget := m[1]
             if RegExMatch(txt, '"NOME_IMPRESSORA"\s*:\s*"([^"]+)"', &m)
@@ -345,7 +427,7 @@ AlternarPausa() {
     static pausado := false
     pausado := !pausado
     Pause(pausado)
-    ToolTip(pausado ? "Script PAUSADO" : "Script ATIVO")
+    ToolTip(pausado ? "Script Pausado" : "Script Ativo")
     SetTimer(() => ToolTip(), -2000)
 }
 
@@ -374,6 +456,34 @@ ProcessarTextoClipboard() {
 }
 
 ; =====================================================================
+;  FUNÇÃO PARA REGISTRAR O RELATÓRIO EM ARQUIVO CSV
+; =====================================================================
+
+RegistrarEmCSV(codigo) {
+    global PastaProjetoGlobal
+    
+    dataAtual := FormatTime(, "dd/MM/yyyy")
+    horaAtual := FormatTime(, "HH:mm:ss")
+    anoAtual  := FormatTime(, "yyyy")
+    mesAtual  := FormatTime(, "MM")
+    
+    pastaBase := (PastaProjetoGlobal != "" && DirExist(PastaProjetoGlobal)) ? PastaProjetoGlobal : A_ScriptDir
+    pastaAno  := pastaBase "\Relatorios_" . anoAtual
+    
+    if !DirExist(pastaAno)
+        DirCreate(pastaAno)
+        
+    arquivoCSV := pastaAno "\Relatorio_" . mesAtual . "_" . anoAtual . ".csv"
+    
+    if !FileExist(arquivoCSV) {
+        FileAppend("CODIGO;DATA;HORARIO`n", arquivoCSV, "UTF-8")
+    }
+    
+    linha := codigo . ";" . dataAtual . ";" . horaAtual . "`n"
+    FileAppend(linha, arquivoCSV, "UTF-8")
+}
+
+; =====================================================================
 ;  ROTINA PRINCIPAL DE IMPRESSÃO
 ; =====================================================================
 
@@ -387,34 +497,48 @@ IniciarProcessamento(ehAutomatico := false) {
         return
     }
 
-    ; Abre a janela de escolha APENAS no F2 ou na primeira vez que o .txt for modificado
     if (!ehAutomatico || PrimeiraExecucao) {
         if (!PedirImpressora())
             return
-        PrimeiraExecucao := false ; Não pergunta mais nas próximas alterações automáticas
+        PrimeiraExecucao := false
     }
 
-    if !FileExist(ArquivoCodigos)
+    if !FileExist(ArquivoCodigos) {
+        if (!ehAutomatico)
+            MsgBox("O arquivo de códigos não foi encontrado na pasta local (`codigos.csv` ou `codigos.txt`)!")
         return
-
-    conteudo := FileRead(ArquivoCodigos)
-    codigos := StrSplit(conteudo, "`n", "`r")
-
-    total := 0
-    for codigo in codigos {
-        if (Trim(codigo) != "")
-            total++
     }
 
-    if (total == 0)
-        return
+    try {
+        conteudo := FileRead(ArquivoCodigos, "UTF-8")
+    } catch {
+        conteudo := FileRead(ArquivoCodigos)
+    }
 
-    contador := 0
-    for codigo in codigos {
-        codigo := Trim(codigo)
-        if (codigo = "")
+    linhas := StrSplit(conteudo, "`n", "`r")
+    listaCodigos := []
+
+    for linha in linhas {
+        linhaLimpa := Trim(linha)
+        if (linhaLimpa == "" || RegExMatch(linhaLimpa, "i)^cód|^codigo|^code"))
             continue
 
+        partes := StrSplit(linhaLimpa, [";", ","])
+        codigo := Trim(partes[1], " `t`r`n`"")
+
+        if (codigo != "")
+            listaCodigos.Push(codigo)
+    }
+
+    total := listaCodigos.Length
+    if (total == 0) {
+        if (!ehAutomatico)
+            MsgBox("Nenhum código válido foi encontrado no arquivo!")
+        return
+    }
+
+    contador := 0
+    for codigo in listaCodigos {
         contador++
         AtualizarStatus("imprimindo", codigo, contador - 1)
         AtualizarMonitorAHK("imprimindo", codigo, contador, total)
@@ -425,6 +549,8 @@ IniciarProcessamento(ehAutomatico := false) {
             return
         }
 
+        RegistrarEmCSV(codigo)
+
         AtualizarStatus("imprimindo", codigo, contador)
         Sleep(50)
     }
@@ -434,7 +560,7 @@ IniciarProcessamento(ehAutomatico := false) {
 }
 
 ; =====================================================================
-;  PROCESSA UM CÓDIGO (COM REPETIÇÃO EM CASO DE ATENÇÃO)
+;  PROCESSA UM CÓDIGO (TEMPOS PERSONALIZADOS MANTIDOS)
 ; =====================================================================
 
 ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
@@ -448,20 +574,36 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
     loop 2 {
         deuAtencao := false
 
-        ; 1. Foca o campo de código e limpa
-        FocarEclicar(CampoCodigo_X, CampoCodigo_Y, 2)
-        Sleep(50)
-        EnviarTeclaDireta("^a")
-        Sleep(30)
-        EnviarTeclaDireta("{BackSpace}")
-        Sleep(30)
+        if ExisteAlgumaJanela(TitulosVisualizacao) {
+            FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
+            Sleep(150)
+            for t in TitulosVisualizacao {
+                if WinExist(t) {
+                    WinActivate(t)
+                    Send("{Esc}")
+                    Sleep(150)
+                }
+            }
+        }
 
-        ; 2. Envia o código e chama o F5 diretamente
-        EnviarTextoDireto(codigo)
-        Sleep(50)
-        EnviarTeclaDireta("{F5}")
+        if !WinExist(JanelaTarget)
+            return false
 
-        ; 3. Aguarda a visualização ou pop-ups abrirem
+        WinActivate(JanelaTarget)
+        Sleep(100)
+
+        CoordMode("Mouse", "Screen")
+        Click(CampoCodigo_X, CampoCodigo_Y, 2)
+        Sleep(60)
+        Send("^a")
+        Sleep(40)
+        Send("{BackSpace}")
+        Sleep(40)
+
+        SendText(codigo)
+        Sleep(60)
+        Send("{F5}")
+
         tempoEsperado := 0
         loop {
             tempoEsperado++
@@ -497,55 +639,43 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
         }
 
         if (deuAtencao) {
-            Sleep(150)
+            Sleep(10)
             continue
         }
 
         Sleep(50)
 
-        ; ==========================================================================
-        ; 4. Clica no botão Imprimir e AGUARDA A JANELA EXATA "Imprimir (Remoto)"
-        ; ==========================================================================
         tempoImp := 0
         hwndSelecao := 0
 
-        while (tempoImp < 50) { ; Tenta por até 20 segundos
-            
-            ; VERIFICAÇÃO 100% EXATA: Se a janela chama-se "Imprimir (Remoto)"
+        while (tempoImp < 50) {
             hwndSelecao := VerificarJanelaExata(["Imprimir (Remoto)", "Print (Remoto)"])
-            
             if (hwndSelecao)
                 break
 
-            ; Se ainda não abriu, continua a clicar no botão de impressão do Preview
             FocarEclicar(BotaoImprimir2_X, BotaoImprimir2_Y)
             Sleep(400)
             tempoImp++
         }
 
-        ; Se passou 20 segundos e a janela "Imprimir (Remoto)" não apareceu, interrompe
         if (!hwndSelecao) {
             return false
         }
 
         WinActivate("ahk_id " . hwndSelecao)
-        Sleep(100)
+        Sleep(100) 
 
-        ; 5. Confirmação da impressora (SÓ roda se a janela realmente abriu)
         if (impressoraPadrao = "WMS2" || impressoraPadrao = "WMS 2") {
             FocarEclicar(BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y)
-            Sleep(100)
+            Sleep(50) 
             FocarEclicar(ImpressoraWMS2_X, ImpressoraWMS2_Y)
-            Sleep(80)
+            Sleep(50) 
             FocarEclicar(BotaoOK_X, BotaoOK_Y)
-            AguardarJanelaFecharRapido(hwndSelecao, 8) ; <--- Rápido
+            AguardarJanelaFecharRapido(hwndSelecao, 8)
         } else {
-            ; FLUXO UNIVERSAL PRINTER:
-            ; Passo A: Clica no 1º OK da janela "Imprimir (Remoto)"
             FocarEclicar(BotaoOK_X, BotaoOK_Y)
             AguardarJanelaFechar(hwndSelecao, 5)
 
-            ; Passo B: Aguarda a 2ª janela (Universal Printer) abrir. ESPERA INFINITA (SEM TIMEOUT).
             hwndUniv := 0
             loop {
                 hwndEncontrado := VerificarJanelaExata(["Imprimir", "Print", "Universal Printer"])
@@ -553,23 +683,19 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
                     hwndUniv := hwndEncontrado
                     break
                 }
-                Sleep(200) ; Checa a cada 200ms se a janela abriu
+                Sleep(50)
             }
 
-            ; Passo C: Clica no botão Imprimir/OK da Universal Printer assim que ela abrir
             if (hwndUniv) {
                 WinActivate("ahk_id " . hwndUniv)
-                Sleep(200)
+                Sleep(50)
                 FocarEclicar(BotaoImprimirUniversal_X, BotaoImprimirUniversal_Y)
-                
-                ; AQUI COMEÇA O 10MS! (Após clicar o OK no Universal Printer)
                 AguardarJanelaFecharRapido(hwndUniv, 8)
             }
         }
 
-        ; 6. Aguarda a janela "Imprimindo" sumir (Com verificação rápida de 10ms)
         tempoProg := 0
-        while !ExisteAlgumaJanela(TitulosProgresso) && (tempoProg < 200) { ; 200 loops * 10ms = 2s max pra aparecer
+        while !ExisteAlgumaJanela(TitulosProgresso) && (tempoProg < 200) {
             tempoProg++
             Sleep(10)
         }
@@ -578,13 +704,12 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
             Sleep(10)
         }
 
-        ; 7. Fecha a visualização imediatamente (Ações rápidas com 10ms)
         FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-        Sleep(10)
+        Sleep(50)
 
         if ExisteAlgumaJanela(TitulosVisualizacao) {
             FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-            Sleep(10)
+            Sleep(50)
         }
 
         return true
