@@ -21,6 +21,14 @@
 
 ---
 
+# Função de relatório
+
+* Agora o sistema possui uma função de relatório, salvando a lista de códigos impressos junto com horário e data. Esses são salvos em .csv podendo ser executador por excel para visualização da lista.
+* É possível selecionar o local para salvar os mesmos, na função Configurar Painel.exe
+* Ao selecionar uma pasta ele irá criar uma subpasta referente ao ano atual. Nessa subpasta ele irá criar um arquivo .csv para o mês atual, e cria para cada outro mês que estiver. A escolha do arquivo .csv é pela maior velocidade de salvamento, e esta função de relatório possibilita exportar os dados. Fazendo com que o usuário escolha como ele prefere usar estes dados.
+
+---
+
 # Como ultilizar?
 
 * O uso recomendado é digitalizar a lista de codigos completa, ultilizando um aplicativo ou a própia câmera ex.: a câmera do iPhone tem essa digitalização própia: digitalize, copie o texto e cole na nota do keep (ele detecta automáticamento o código no início de cada linha, e para uso funcional o código precisa ficar no início de cada linha. Códigos fora de cada linhas pode acarretar em possíveis erros no envio dos códigos para os arquivos).
