@@ -82,8 +82,11 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 1. Deixe a **Rotina 1707** aberta no WinThor (preferencialmente maximizada).
 2. Pressione a tecla **`F2`** no teclado.
 3. Selecione o tipo de impressão no pop-up do AHK (**Impressão Direta** ou **Universal Printer**).
+
 3.1. Impressão Direta: imprime de acordo com a sua impressora padrão, localizada na lista de impressoras da rotina 1707 ao imprimir (Processo mais rápido).
+
 3.2. Universal Printer: imprime ultilizando a impressora universal que abre um software própio e seleciona automáticamente sua impressora padrão (Processo mais lento).
+
 4. O robô assumirá o controle e processará todos os códigos da lista sequencialmente.
 
 ---
