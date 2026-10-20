@@ -1,7 +1,3 @@
-
-
-
-
 # Tutorial de downloads
 * Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
@@ -48,7 +44,7 @@ https://github.com/user-attachments/assets/e0f92657-8802-41ba-a04e-c22647c0be6b
 
 Assista ao vídeo abaixo para ver como configurar a localização dos pontos de cliques do mouse na automação
 
-https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
+https://github.com/user-attachments/assets/fc80860b-efd2-4e37-90d8-339cef59c470
 
 ---
 
