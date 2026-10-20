@@ -9,10 +9,10 @@ SetTitleMatchMode(2) ; Modo Parcial por padrão
 ; --------------------- CONFIGURAÇÕES DE JANELAS ---------------------
 
 global JanelaTarget            := "1707 - Consultas Auxiliares - Consultar Produtos (Remoto)" 
-global TitulosVisualizacao    := ["Visualizando Impressão (Remoto)", "Visualizando Impressão"]     
-global TitulosInformacao      := ["Informação (Remoto)", "Informação", "Information"]
-global TitulosAtencao         := ["Atenção (Remoto)", "Atenção", "Attention"]
-global TitulosProgresso       := ["Imprimindo (Remoto)", "Imprimindo", "Printing"]
+global TitulosVisualizacao     := ["Visualizando Impressão (Remoto)", "Visualizando Impressão"]     
+global TitulosInformacao       := ["Informação (Remoto)", "Informação", "Information"]
+global TitulosAtencao          := ["Atenção (Remoto)", "Atenção", "Attention"]
+global TitulosProgresso        := ["Imprimindo (Remoto)", "Imprimindo", "Printing"]
 
 ; --------------------- COORDENADAS PADRÃO ---------------------
 
@@ -40,7 +40,8 @@ global Timeout                  := 15
 global AutoIniciarAoMudar       := true
 global ArquivoCodigos           := A_ScriptDir "\codigos.csv"
 global impressoraPadrao         := "WMS2"
-global PastaProjetoGlobal       := ""
+global PastaRelatorioFaltasGlobal := ""
+global PastaAutomacaoGlobal     := A_ScriptDir
 global UltimaModificacao        := ""
 global PrimeiraExecucao         := true
 
@@ -116,38 +117,30 @@ CriarJanelaMonitorAHK() {
     MonitorGui := Gui("+AlwaysOnTop -MaximizeBox", "Painel de Monitoramento - WinThor 1707")
     MonitorGui.BackColor := "F8F9FA"
     
-    ; Fundo do Card Branco Central
     MonitorGui.Add("Text", "x14 y14 w416 h195 BackgroundFFFFFF +Border", "")
 
-    ; Cabeçalho com Degradê Cinza
     if FileExist(caminhoBmp) {
         MonitorGui.Add("Pic", "x15 y15 w414 h50", caminhoBmp)
     } else {
         MonitorGui.Add("Text", "x15 y15 w414 h50 BackgroundF1F3F5", "")
     }
 
-    ; Título e Subtítulo do Cabeçalho (Centralizados)
     MonitorGui.SetFont("s11 norm", "Segoe UI")
     MonitorGui.Add("Text", "x28 y21 w388 Center BackgroundTrans c1F2937", "Status da execução")
     
     MonitorGui.SetFont("s9 norm", "Segoe UI")
     MonitorGui.Add("Text", "x28 y43 w388 Center BackgroundTrans c6B7280", "Acompanhamento do processamento em tempo real")
 
-    ; Linha Divisória 1: Separa Cabeçalho do Corpo
     MonitorGui.Add("Text", "x15 y65 w414 h1 BackgroundE2E8F0", "")
 
-    ; --- SEÇÃO 1: STATUS DA EXECUÇÃO (CENTRALIZADO) ---
     MonitorGui.SetFont("s10 norm", "Segoe UI")
     TextStatus := MonitorGui.Add("Text", "x28 y76 w388 r2 Center BackgroundFFFFFF c0284C7", "Aguardando início (Pressione F2)...")
     
-    ; Linha Divisória 2: Separa a Caixa de Status da Caixa de Progresso
     MonitorGui.Add("Text", "x28 y122 w388 h1 BackgroundE2E8F0", "")
 
-    ; --- SEÇÃO 2: PROGRESSO / CÓDIGOS (CENTRALIZADO) ---
     MonitorGui.SetFont("s9 norm", "Segoe UI")
     TextProgresso := MonitorGui.Add("Text", "x28 y132 w388 Center BackgroundFFFFFF c4B5563", "Códigos processados: 0 de 0")
     
-    ; Mensagem de Erro / Detalhes (Centralizado)
     TextErro := MonitorGui.Add("Text", "x28 y156 w388 r2 Center BackgroundFFFFFF cDC2626 Hidden", "")
 
     MonitorGui.Show("x20 y20 w444 h223 NoActivate")
@@ -333,33 +326,37 @@ PedirImpressora() {
 }
 
 MonitorarArquivoCodigos() {
-    global ArquivoCodigos, UltimaModificacao, AutoIniciarAoMudar
-    if (!AutoIniciarAoMudar || !FileExist(ArquivoCodigos))
+    global ArquivoCodigos, UltimaModificacao, AutoIniciarAoMudar, PastaAutomacaoGlobal
+    pastaLocal := (PastaAutomacaoGlobal != "" && DirExist(PastaAutomacaoGlobal)) ? PastaAutomacaoGlobal : A_ScriptDir
+    
+    if FileExist(pastaLocal "\codigos.csv")
+        caminhoAlvo := pastaLocal "\codigos.csv"
+    else if FileExist(pastaLocal "\codigos.txt")
+        caminhoAlvo := pastaLocal "\codigos.txt"
+    else
+        caminhoAlvo := pastaLocal "\codigos.csv"
+
+    if (!AutoIniciarAoMudar || !FileExist(caminhoAlvo))
         return
-    mTime := FileGetTime(ArquivoCodigos, "M")
+
+    mTime := FileGetTime(caminhoAlvo, "M")
     if (UltimaModificacao == "") {
         UltimaModificacao := mTime
         return
     }
     if (mTime != UltimaModificacao) {
         UltimaModificacao := mTime
+        ArquivoCodigos := caminhoAlvo
         IniciarProcessamento(true)
     }
 }
 
 CarregarConfiguracao() {
-    global ArquivoCodigos, Timeout, PastaProjetoGlobal, JanelaTarget, AutoIniciarAoMudar, impressoraPadrao
+    global ArquivoCodigos, Timeout, PastaRelatorioFaltasGlobal, PastaAutomacaoGlobal, JanelaTarget, AutoIniciarAoMudar, impressoraPadrao
     global CampoCodigo_X, CampoCodigo_Y, BotaoImprimir2_X, BotaoImprimir2_Y
     global BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y, ImpressoraWMS2_X, ImpressoraWMS2_Y
     global BotaoOK_X, BotaoOK_Y, BotaoOK_Informacao_X, BotaoOK_Informacao_Y, BotaoOK_Atencao_X, BotaoOK_Atencao_Y
     global BotaoImprimirUniversal_X, BotaoImprimirUniversal_Y, BotaoFechar_X, BotaoFechar_Y
-
-    if FileExist(A_ScriptDir "\codigos.csv")
-        ArquivoCodigos := A_ScriptDir "\codigos.csv"
-    else if FileExist(A_ScriptDir "\codigos.txt")
-        ArquivoCodigos := A_ScriptDir "\codigos.txt"
-    else
-        ArquivoCodigos := A_ScriptDir "\codigos.csv"
 
     caminhoConfig := A_ScriptDir "\config.json"
     if FileExist(caminhoConfig) {
@@ -389,8 +386,10 @@ CarregarConfiguracao() {
             BotaoFechar_X            := GetCoord("BotaoFechar_X", BotaoFechar_X)
             BotaoFechar_Y            := GetCoord("BotaoFechar_Y", BotaoFechar_Y)
 
-            if RegExMatch(txt, '"PASTA_PROJETO"\s*:\s*"([^"]+)"', &m)
-                PastaProjetoGlobal := StrReplace(m[1], "\\", "\")
+            if RegExMatch(txt, '"PASTA_AUTOMACAO"\s*:\s*"([^"]+)"', &m)
+                PastaAutomacaoGlobal := StrReplace(m[1], "\\", "\")
+            if RegExMatch(txt, '"PASTA_RELATORIO_FALTAS"\s*:\s*"([^"]+)"', &m)
+                PastaRelatorioFaltasGlobal := StrReplace(m[1], "\\", "\")
             if RegExMatch(txt, '"JANELA_TARGET"\s*:\s*"([^"]+)"', &m)
                 JanelaTarget := m[1]
             if RegExMatch(txt, '"NOME_IMPRESSORA"\s*:\s*"([^"]+)"', &m)
@@ -401,16 +400,22 @@ CarregarConfiguracao() {
                 Timeout := Integer(m[1])
         }
     }
+
+    pastaLocal := (PastaAutomacaoGlobal != "" && DirExist(PastaAutomacaoGlobal)) ? PastaAutomacaoGlobal : A_ScriptDir
+    if FileExist(pastaLocal "\codigos.csv")
+        ArquivoCodigos := pastaLocal "\codigos.csv"
+    else if FileExist(pastaLocal "\codigos.txt")
+        ArquivoCodigos := pastaLocal "\codigos.txt"
+    else
+        ArquivoCodigos := pastaLocal "\codigos.csv"
 }
 
 AtualizarStatus(status, codigoAtual:="-", totalProc:=0, temErro:=false, codErro:="", msgErro:="") {
-    global PastaProjetoGlobal
+    global PastaAutomacaoGlobal
+    pastaLocal := (PastaAutomacaoGlobal != "" && DirExist(PastaAutomacaoGlobal)) ? PastaAutomacaoGlobal : A_ScriptDir
     totalProcessadosVal := Number(totalProc)
     txtJson := '{"status": "' status '", "codigo_atual": "' codigoAtual '", "total_processados": ' totalProcessadosVal ', "erro": ' (temErro ? "true" : "false") ', "codigo_erro": "' codErro '", "mensagem_erro": "' msgErro '"}'
-    EscreverArquivoJSON(A_ScriptDir "\status.json", txtJson)
-    if (PastaProjetoGlobal != "" && DirExist(PastaProjetoGlobal) && PastaProjetoGlobal != A_ScriptDir) {
-        EscreverArquivoJSON(PastaProjetoGlobal "\status.json", txtJson)
-    }
+    EscreverArquivoJSON(pastaLocal "\status.json", txtJson)
 }
 
 EscreverArquivoJSON(caminho, conteudo) {
@@ -432,7 +437,7 @@ AlternarPausa() {
 }
 
 ProcessarTextoClipboard() {
-    global ArquivoCodigos
+    global ArquivoCodigos, PastaAutomacaoGlobal
     textoBruto := A_Clipboard
     if (Trim(textoBruto) = "")
         return
@@ -449,9 +454,12 @@ ProcessarTextoClipboard() {
     }
     resultadoLimpo := Trim(resultado, "`n`r")
     if (resultadoLimpo != "") {
-        if FileExist(ArquivoCodigos)
-            FileDelete(ArquivoCodigos)
-        FileAppend(resultadoLimpo, ArquivoCodigos, "UTF-8")
+        pastaLocal := (PastaAutomacaoGlobal != "" && DirExist(PastaAutomacaoGlobal)) ? PastaAutomacaoGlobal : A_ScriptDir
+        caminhoDestino := pastaLocal "\codigos.csv"
+        if FileExist(caminhoDestino)
+            FileDelete(caminhoDestino)
+        FileAppend(resultadoLimpo, caminhoDestino, "UTF-8")
+        ArquivoCodigos := caminhoDestino
     }
 }
 
@@ -460,14 +468,14 @@ ProcessarTextoClipboard() {
 ; =====================================================================
 
 RegistrarEmCSV(codigo) {
-    global PastaProjetoGlobal
+    global PastaRelatorioFaltasGlobal, PastaAutomacaoGlobal
     
     dataAtual := FormatTime(, "dd/MM/yyyy")
     horaAtual := FormatTime(, "HH:mm:ss")
     anoAtual  := FormatTime(, "yyyy")
     mesAtual  := FormatTime(, "MM")
     
-    pastaBase := (PastaProjetoGlobal != "" && DirExist(PastaProjetoGlobal)) ? PastaProjetoGlobal : A_ScriptDir
+    pastaBase := (PastaRelatorioFaltasGlobal != "" && DirExist(PastaRelatorioFaltasGlobal)) ? PastaRelatorioFaltasGlobal : PastaAutomacaoGlobal
     pastaAno  := pastaBase "\Relatorios_" . anoAtual
     
     if !DirExist(pastaAno)
@@ -560,7 +568,7 @@ IniciarProcessamento(ehAutomatico := false) {
 }
 
 ; =====================================================================
-;  PROCESSA UM CÓDIGO (TEMPOS PERSONALIZADOS MANTIDOS)
+;  PROCESSA UM CÓDIGO
 ; =====================================================================
 
 ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
@@ -667,9 +675,9 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
 
         if (impressoraPadrao = "WMS2" || impressoraPadrao = "WMS 2") {
             FocarEclicar(BotaoTrocarImpressora_X, BotaoTrocarImpressora_Y)
-            Sleep(50) 
+            Sleep(70) 
             FocarEclicar(ImpressoraWMS2_X, ImpressoraWMS2_Y)
-            Sleep(50) 
+            Sleep(70) 
             FocarEclicar(BotaoOK_X, BotaoOK_Y)
             AguardarJanelaFecharRapido(hwndSelecao, 8)
         } else {
@@ -688,7 +696,7 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
 
             if (hwndUniv) {
                 WinActivate("ahk_id " . hwndUniv)
-                Sleep(50)
+                Sleep(70)
                 FocarEclicar(BotaoImprimirUniversal_X, BotaoImprimirUniversal_Y)
                 AguardarJanelaFecharRapido(hwndUniv, 8)
             }
@@ -697,19 +705,19 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
         tempoProg := 0
         while !ExisteAlgumaJanela(TitulosProgresso) && (tempoProg < 200) {
             tempoProg++
-            Sleep(10)
+            Sleep(70)
         }
 
         while ExisteAlgumaJanela(TitulosProgresso) {
-            Sleep(10)
+            Sleep(70)
         }
 
         FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-        Sleep(50)
+        Sleep(70)
 
         if ExisteAlgumaJanela(TitulosVisualizacao) {
             FocarEclicar(BotaoFechar_X, BotaoFechar_Y)
-            Sleep(50)
+            Sleep(70)
         }
 
         return true

@@ -16,12 +16,28 @@ def obter_posicao_mouse():
     ctypes.windll.user32.GetCursorPos(ctypes.byref(pt))
     return pt.x, pt.y
 
-# Caminho da pasta local do script
-DIRETORIO_ATUAL = os.path.dirname(os.path.abspath(__file__))
+def obter_diretorio_real():
+    """
+    Garante o caminho da pasta REAL no disco, contornando a pasta
+    temporaria (AppData/Temp) criada por conversores de .bat para .exe ou PyInstaller.
+    """
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    
+    caminho_script = os.path.dirname(os.path.abspath(__file__))
+    
+    if "temp" in caminho_script.lower() or "appdata" in caminho_script.lower():
+        return os.getcwd()
+        
+    return caminho_script
+
+DIRETORIO_ATUAL = obter_diretorio_real()
 CONFIG_FILE = os.path.join(DIRETORIO_ATUAL, "config.json")
 
 # Configurações Padrão de Fábrica
 DEFAULTS_CONFIG = {
+    "PASTA_AUTOMACAO": DIRETORIO_ATUAL,
+    "PASTA_RELATORIO_FALTAS": DIRETORIO_ATUAL,
     "PASTA_LOCAL_PROJETO": DIRETORIO_ATUAL,
     "PASTA_PROJETO": DIRETORIO_ATUAL,
     "NOME_IMPRESSORA": "WMS2",
@@ -39,30 +55,37 @@ DEFAULTS_CONFIG = {
 }
 
 def carregar_config():
-    """Carrega o arquivo config.json mantendo dados gravados pelo usuário."""
+    """Carrega o arquivo config.json suportando UTF-8 com e sem BOM."""
     config = DEFAULTS_CONFIG.copy()
     if os.path.exists(CONFIG_FILE):
         try:
-            with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            # utf-8-sig ignora o caractere BOM (\ufeff) adicionado pelo Bloco de Notas
+            with open(CONFIG_FILE, "r", encoding="utf-8-sig") as f:
                 dados_arquivo = json.load(f)
+                
+                # Mapeamento de compatibilidade entre chaves antigas e novas
+                if "PASTA_LOCAL_PROJETO" in dados_arquivo and "PASTA_AUTOMACAO" not in dados_arquivo:
+                    dados_arquivo["PASTA_AUTOMACAO"] = dados_arquivo["PASTA_LOCAL_PROJETO"]
+                if "PASTA_PROJETO" in dados_arquivo and "PASTA_RELATORIO_FALTAS" not in dados_arquivo:
+                    dados_arquivo["PASTA_RELATORIO_FALTAS"] = dados_arquivo["PASTA_PROJETO"]
+
                 config.update(dados_arquivo)
         except Exception as e:
-            print(f"Erro ao ler config.json: {e}")
+            messagebox.showwarning("Erro na Leitura do JSON", f"Não foi possível ler o config.json:\n{e}\n\nO painel carregará os valores padrão.")
             
-    # Garante que se PASTA_PROJETO estiver vazia no JSON, utiliza o diretório atual
-    if not config.get("PASTA_PROJETO"):
-        config["PASTA_PROJETO"] = DIRETORIO_ATUAL
-        
     return config
 
 def salvar_config(config_data):
-    """Grava as configurações no config.json."""
+    """Grava as configurações diretamente no arquivo config.json da pasta fixa."""
     try:
+        config_data["PASTA_LOCAL_PROJETO"] = config_data.get("PASTA_AUTOMACAO", DIRETORIO_ATUAL)
+        config_data["PASTA_PROJETO"] = config_data.get("PASTA_RELATORIO_FALTAS", DIRETORIO_ATUAL)
+
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(config_data, f, indent=4, ensure_ascii=False)
         return True
     except Exception as e:
-        messagebox.showerror("Erro", f"Não foi possível salvar as configurações:\n{e}")
+        messagebox.showerror("Erro ao Salvar", f"Não foi possível salvar as configurações:\n{e}")
         return False
 
 # ---------------------------------------------------------------------
@@ -139,18 +162,15 @@ class PainelControleApp(tk.Tk):
 
         self.config_data = carregar_config()
 
-        # ÁREA MESTRE CONTAINER
         self.scroll_frame = tk.Frame(self, bg="#f8f9fa")
         self.scroll_frame.pack(fill="both", expand=True)
 
         self.CriarWidgets()
 
     def CriarCardEstiloFigma(self, parent, titulo_texto, subtitulo_texto):
-        """Cria um card com cabeçalho limpo (sem caixa de ícone) e bordas suaves."""
         card_outer = tk.Frame(parent, bg="#ffffff", bd=1, relief="solid", highlightbackground="#e2e8f0", highlightthickness=1)
         card_outer.pack(fill="x", padx=16, pady=6)
 
-        # Cabeçalho com Gradiente suave
         header_h = 46
         canvas_header = tk.Canvas(card_outer, height=header_h, bg="#f1f3f5", highlightthickness=0)
         canvas_header.pack(fill="x", side="top")
@@ -171,22 +191,17 @@ class PainelControleApp(tk.Tk):
                 color = f"#{r_c:02x}{g_c:02x}{b_c:02x}"
                 canvas_header.create_line(0, i, w, i, fill=color)
 
-            # Título principal
             canvas_header.create_text(16, 16, anchor="w", text=titulo_texto, font=("Segoe UI", 10, "normal"), fill="#1f2937")
-
-            # Subtítulo
             canvas_header.create_text(16, 31, anchor="w", text=subtitulo_texto, font=("Segoe UI", 8, "normal"), fill="#6b7280")
 
         canvas_header.bind("<Configure>", desenhar_header)
 
-        # Corpo do Card
         body_frame = tk.Frame(card_outer, bg="#ffffff")
         body_frame.pack(fill="x", expand=True, padx=14, pady=10)
 
         return body_frame
 
     def CriarCampoTexto(self, parent, variable, width=None):
-        """Cria um campo de entrada limpo com bordas cinza claras."""
         entry = tk.Entry(
             parent,
             textvariable=variable,
@@ -203,20 +218,18 @@ class PainelControleApp(tk.Tk):
         return entry
 
     def CriarWidgets(self):
-        # ---------------------------------------------------------------------
-        # CARD 1: DIRETÓRIOS E CAMINHOS DO SISTEMA
-        # ---------------------------------------------------------------------
+        # CARD 1: DIRETÓRIOS DO SISTEMA
         body_pastas = self.CriarCardEstiloFigma(
             self.scroll_frame, 
             titulo_texto="Informações gerais", 
-            subtitulo_texto="Os detalhes que identificam os caminhos do seu sistema"
+            subtitulo_texto="Diretórios do sistema e local de salvamento dos relatórios"
         )
 
-        tk.Label(body_pastas, text="Pasta local da automação *", bg="#ffffff", fg="#374151", font=("Segoe UI", 8, "normal")).pack(anchor="w", pady=(0, 2))
+        tk.Label(body_pastas, text="Pasta da automação *", bg="#ffffff", fg="#374151", font=("Segoe UI", 8, "normal")).pack(anchor="w", pady=(0, 2))
         sub_local = tk.Frame(body_pastas, bg="#ffffff")
         sub_local.pack(fill="x", pady=(0, 8))
         
-        self.var_pasta_local = tk.StringVar(value=self.config_data.get("PASTA_LOCAL_PROJETO", DIRETORIO_ATUAL))
+        self.var_pasta_local = tk.StringVar(value=self.config_data.get("PASTA_AUTOMACAO", DIRETORIO_ATUAL))
         entry_local = self.CriarCampoTexto(sub_local, self.var_pasta_local)
         entry_local.pack(side="left", fill="x", expand=True, ipady=3, padx=(0, 8))
         
@@ -226,24 +239,22 @@ class PainelControleApp(tk.Tk):
         )
         btn_local.pack(side="right")
 
-        tk.Label(body_pastas, text="Pasta de destino dos relatórios *", bg="#ffffff", fg="#374151", font=("Segoe UI", 8, "normal")).pack(anchor="w", pady=(0, 2))
+        tk.Label(body_pastas, text="Pasta do relatório de faltas *", bg="#ffffff", fg="#374151", font=("Segoe UI", 8, "normal")).pack(anchor="w", pady=(0, 2))
         sub_relatorios = tk.Frame(body_pastas, bg="#ffffff")
         sub_relatorios.pack(fill="x", pady=(0, 2))
         
-        val_relatorios = self.config_data.get("PASTA_PROJETO") or DIRETORIO_ATUAL
+        val_relatorios = self.config_data.get("PASTA_RELATORIO_FALTAS", DIRETORIO_ATUAL)
         self.var_pasta_relatorios = tk.StringVar(value=val_relatorios)
         entry_relatorios = self.CriarCampoTexto(sub_relatorios, self.var_pasta_relatorios)
         entry_relatorios.pack(side="left", fill="x", expand=True, ipady=3, padx=(0, 8))
         
         btn_relatorios = BotaoArredondado(
             sub_relatorios, text="Procurar", width=85, height=26, radius=10,
-            command=lambda: self.SelecionarDiretorio(self.var_pasta_relatorios, "Selecione a Pasta de Destino dos Relatórios")
+            command=lambda: self.SelecionarDiretorio(self.var_pasta_relatorios, "Selecione a Pasta do Relatório de Faltas")
         )
         btn_relatorios.pack(side="right")
 
-        # ---------------------------------------------------------------------
         # CARD 2: CONFIGURAÇÃO DE IMPRESSORA
-        # ---------------------------------------------------------------------
         body_impressora = self.CriarCardEstiloFigma(
             self.scroll_frame, 
             titulo_texto="Configuração de impressão", 
@@ -256,9 +267,7 @@ class PainelControleApp(tk.Tk):
         entry_imp = self.CriarCampoTexto(body_impressora, self.var_impressora, width=32)
         entry_imp.grid(row=0, column=1, sticky="w", padx=12, pady=2, ipady=3)
 
-        # ---------------------------------------------------------------------
-        # CARD 3: COORDENADAS DOS PONTOS DE CLIQUE (9 PONTOS)
-        # ---------------------------------------------------------------------
+        # CARD 3: COORDENADAS
         body_coords = self.CriarCardEstiloFigma(
             self.scroll_frame, 
             titulo_texto="Coordenadas dos pontos de clique", 
@@ -279,7 +288,6 @@ class PainelControleApp(tk.Tk):
 
         self.entries_coords = {}
 
-        # Cabeçalho da Tabela
         tk.Label(body_coords, text="Ponto / Ação", font=("Segoe UI", 8, "normal"), bg="#ffffff", fg="#6b7280").grid(row=0, column=0, sticky="w", padx=2, pady=2)
         tk.Label(body_coords, text="X", font=("Segoe UI", 8, "normal"), bg="#ffffff", fg="#6b7280").grid(row=0, column=1, padx=6, pady=2)
         tk.Label(body_coords, text="Y", font=("Segoe UI", 8, "normal"), bg="#ffffff", fg="#6b7280").grid(row=0, column=2, padx=6, pady=2)
@@ -315,9 +323,6 @@ class PainelControleApp(tk.Tk):
             self.entries_coords[f"{chave_base}_X"] = var_x
             self.entries_coords[f"{chave_base}_Y"] = var_y
 
-        # ---------------------------------------------------------------------
-        # BOTÃO PRINCIPAL DE SALVAR (RODAPÉ)
-        # ---------------------------------------------------------------------
         frame_bottom = tk.Frame(self.scroll_frame, bg="#f8f9fa")
         frame_bottom.pack(fill="x", pady=12)
 
@@ -382,11 +387,11 @@ class PainelControleApp(tk.Tk):
         nome_impressora = self.var_impressora.get().strip()
 
         if not os.path.exists(pasta_local):
-            messagebox.showwarning("Aviso", f"A pasta local selecionada não existe:\n{pasta_local}")
+            messagebox.showwarning("Aviso", f"A pasta selecionada não existe:\n{pasta_local}")
             return
 
         if not pasta_relatorios:
-            messagebox.showwarning("Aviso", "Por favor, selecione ou informe o caminho da pasta de destino dos relatórios!")
+            messagebox.showwarning("Aviso", "Por favor, selecione ou informe o caminho da pasta do relatório de faltas!")
             return
 
         if not os.path.exists(pasta_relatorios):
@@ -407,8 +412,8 @@ class PainelControleApp(tk.Tk):
             messagebox.showwarning("Aviso", "Informe um nome válido para a impressora!")
             return
 
-        self.config_data["PASTA_LOCAL_PROJETO"] = pasta_local
-        self.config_data["PASTA_PROJETO"] = pasta_relatorios
+        self.config_data["PASTA_AUTOMACAO"] = pasta_local
+        self.config_data["PASTA_RELATORIO_FALTAS"] = pasta_relatorios
         self.config_data["NOME_IMPRESSORA"] = nome_impressora
 
         try:
@@ -419,7 +424,7 @@ class PainelControleApp(tk.Tk):
             return
 
         if salvar_config(self.config_data):
-            messagebox.showinfo("Sucesso", "Configurações salvas com sucesso!\nOs parâmetros foram atualizados no arquivo config.json.")
+            messagebox.showinfo("Sucesso", "Configurações salvas com sucesso!\nOs parâmetros foram gravados permanentemente no arquivo config.json.")
 
 
 if __name__ == "__main__":

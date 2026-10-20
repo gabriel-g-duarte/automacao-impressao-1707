@@ -6,12 +6,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 
 def obter_caminho_codigos():
-    """Lê dinamicamente a pasta do projeto configurada no config.json"""
+    """Lê dinamicamente a PASTA_AUTOMACAO no config.json"""
     if os.path.exists(CONFIG_FILE):
         try:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 cfg = json.load(f)
-                pasta = cfg.get("PASTA_PROJETO", BASE_DIR)
+                pasta = cfg.get("PASTA_AUTOMACAO", BASE_DIR)
                 return os.path.join(pasta, "codigos.txt")
         except Exception:
             pass
@@ -35,11 +35,11 @@ class KeepHandler(BaseHTTPRequestHandler):
             post_data = self.rfile.read(content_length)
             
             data = json.loads(post_data.decode('utf-8'))
-            codigos = data.get("texto", "") # Aceita a chave "texto" enviada pela extensão
+            codigos = data.get("texto", "")
 
             caminho_destino = obter_caminho_codigos()
 
-            # Escreve o ficheiro codigos.txt na pasta definida no config.json
+            # Escreve o arquivo codigos.txt exclusivamente na PASTA_AUTOMACAO
             with open(caminho_destino, "w", encoding="utf-8") as f:
                 f.write(codigos)
 

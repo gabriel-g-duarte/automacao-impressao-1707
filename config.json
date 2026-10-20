@@ -1,4 +1,6 @@
-{
+﻿{
+    "PASTA_AUTOMACAO": "C:\\Users\\D8059GD\\Documents\\automacao-impressao-1707",
+    "PASTA_RELATORIO_FALTAS": "C:\\Users\\D8059GD\\OneDrive - DFS Holding\\Relatório Faltas 1707",
     "PASTA_LOCAL_PROJETO": "C:\\Users\\D8059GD\\Documents\\automacao-impressao-1707",
     "PASTA_PROJETO": "C:\\Users\\D8059GD\\OneDrive - DFS Holding\\Relatório Faltas 1707",
     "NOME_IMPRESSORA": "WMS2",
@@ -10,8 +12,8 @@
     "BotaoImprimir2_Y": 35,
     "BotaoTrocarImpressora_X": 2773,
     "BotaoTrocarImpressora_Y": 314,
-    "ImpressoraWMS2_X": 2822,
-    "ImpressoraWMS2_Y": 448,
+    "ImpressoraWMS2_X": 2794,
+    "ImpressoraWMS2_Y": 444,
     "BotaoOK_X": 2996,
     "BotaoOK_Y": 657,
     "BotaoOK_Informacao_X": 2883,
