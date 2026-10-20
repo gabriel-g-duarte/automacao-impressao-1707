@@ -56,16 +56,16 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 * `config.json` — Arquivo de configuração dinâmico (caminhos, parâmetros e coordenadas $X, Y$).
 * `codigos.txt` — Arquivo de texto gerado automaticamente com a lista de códigos para processamento.
 * `extension_winthor/` — Pasta contendo a extensão do Chrome (`manifest.json`, `background.js`, `content.js`).
-* `Iniciar tudo.bat` — Atalho para execução diária rápida em segundo plano.
-* `Configurar Painel.bat` — Atalho para abrir o painel de calibração do ponteiro e configurações.
-* `Encerrar tudo.bat` — Utilitário para finalizar todas as instâncias em memória e resetar o sistema.
+* `Iniciar tudo.exe` — Atalho para execução diária rápida em segundo plano.
+* `Configurar Painel.exe` — Atalho para abrir o painel de calibração do ponteiro e configurações.
+* `Encerrar tudo.exe` — Utilitário para finalizar todas as instâncias em memória e resetar o sistema.
 
 ---
 
 ##  Como Usar no Dia a Dia
 
 ### 1. Iniciar o Sistema
-* Dê um duplo clique no arquivo **`Iniciar tudo.bat`**.
+* Dê um duplo clique no arquivo **`Iniciar tudo.exe`**.
 * O servidor Python será carregado silenciosamente em segundo plano (`pythonw`) e a janela de monitoramento do AutoHotkey surgirá na tela.
 * Caso seja necessário fechar o programa de monitoramento do script por f3, é só inicia-lo clicando 2 vezes em impressao_1707.ahk, assim o script já fica ativo em segundo plano. O monitoramento do script é criado pelo própio script, caso ele seja apenas fechado clicando no X ele fecha o monitor apenas.
 
@@ -89,15 +89,14 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 | **`F1`** | **Pausar / Retomar** a automação em tempo real. |
 | **`F2`** | **Iniciar** o processamento em lote dos códigos salvos. |
 | **`F3`** | **Fechar / Encerrar** o script do AutoHotkey. |
-| **`F4`** | **Processar texto da área de transferência** (Clipboard) manualmente para `codigos.txt`. |
 
 ---
 
 ##  Calibração de Coordenadas (Apenas se mudar de monitor/resolução)
 
 Se você mudar a resolução da tela ou mover a janela do WinThor:
-1. Feche os serviços correntes com o **`Encerrar tudo.bat`**.
-2. Abra o **`Configurar Painel.bat`**.
+1. Feche os serviços correntes com o **`Encerrar tudo.exe`**.
+2. Abra o **`Configurar Painel.exe`**.
 3. Selecione a pasta do projeto atualizada e clique em **Configurar Localização do Ponteiro**.
 4. Escolha o ponto desejado (1 a 9), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
 5. Clique em **💾 Salvar Configurações no Projeto**.
@@ -106,9 +105,9 @@ Se você mudar a resolução da tela ou mover a janela do WinThor:
 
 ##  Solução de Problemas Rápidos
 
-* **Extensão exibindo "Servidor Python desligado":** Execute o `Encerrar tudo.bat`, depois o `Iniciar tudo.bat` e pressione `F5` na aba do Google Keep.
+* **Extensão exibindo "Servidor Python desligado":** Execute o `Encerrar tudo.exe`, depois o `Iniciar tudo.exe` e pressione `F5` na aba do Google Keep.
 * **Coordenadas clicando no lugar errado:** Certifique-se de que a janela do WinThor está maximizada no mesmo monitor onde as coordenadas foram salvas.
-* **Processos presos em segundo plano:** Clique duas vezes em `Encerrar tudo.bat` para fechar todas as instâncias do Python e AutoHotkey presas na memória.
+* **Processos presos em segundo plano:** Clique duas vezes em `Encerrar tudo.exe` para fechar todas as instâncias do Python e AutoHotkey presas na memória.
 
 ---
 
