@@ -1,3 +1,7 @@
+
+
+
+
 # Tutorial de downloads
 * Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
@@ -27,7 +31,7 @@ Sistema de automação inteligente desenvolvido para capturar códigos de produt
 
 Assista ao vídeo abaixo para ver a demonstração prática do funcionamento e o guia de configuração de todo o ecossistema:
 
-https://github.com/user-attachments/assets/3d3e7d96-d014-47f8-8b0b-566c9c1dfbe0
+https://github.com/user-attachments/assets/e0f92657-8802-41ba-a04e-c22647c0be6b
 
 ---
 
