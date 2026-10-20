@@ -5,12 +5,12 @@
 # Tutorial de downloads
 * Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
-* Baixe o arquivo .zip em realeses e siga os próximos passos
+* Baixe o arquivo automacao-impressao.zip em realeses, baixe a versão mais recente e siga os próximos passos
 
 ---
 
 # Em caso de dúvidas ou problemas durante o uso 
-* Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br ou D8059GD@dellys.com.br
+* Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br / D8059GD@dellys.com.br / gabrieldgad2007@gmail.com
 
 ---
 
@@ -22,8 +22,8 @@ Sistema de automação inteligente desenvolvido para capturar códigos de produt
 
 # Como ultilizar?
 
-* O uso recomendado é digitalizar a lista de codigos completa, ultilizando algum aplicativo ou a própia câmera ex.: a câmera do iPhone tem essa digitalização própia, copiar e enviar junto ao produto (ele detecta automáticamento o código no início de cada linha, e para uso funcional o código precisa ficar no início de cada linha). Colar na nota desejada do keep e fazer o uso como no tutorial de vídeo.
-* Outro uso recomendado é usar pelo computador que também é possivel, apenas colar a lista na nota e seguir o processo.
+* O uso recomendado é digitalizar a lista de codigos completa, ultilizando um aplicativo ou a própia câmera ex.: a câmera do iPhone tem essa digitalização própia: digitalize, copie o texto e cole na nota do keep (ele detecta automáticamento o código no início de cada linha, e para uso funcional o código precisa ficar no início de cada linha. Códigos fora de cada linhas pode acarretar em possíveis erros no envio dos códigos para os arquivos).
+* Outros usos possíveis: modificar o a lista de códigos pela nota do keep, no computador. Modificar o arquivo codigos.txt mantendo cada código em cada linha.
 
 ---
 
@@ -66,12 +66,12 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 
 ---
 
-##  Como Usar no Dia a Dia
+## Dia-a-Dia
 
 ### 1. Iniciar o Sistema
 * Dê um duplo clique no arquivo **`Iniciar tudo.exe`**.
 * O servidor Python será carregado silenciosamente em segundo plano (`pythonw`) e a janela de monitoramento do AutoHotkey surgirá na tela.
-* Caso seja necessário fechar o programa de monitoramento do script por f3, é só inicia-lo clicando 2 vezes em impressao_1707.ahk, assim o script já fica ativo em segundo plano. O monitoramento do script é criado pelo própio script, caso ele seja apenas fechado clicando no X ele fecha o monitor apenas.
+* Caso opcional: minimizar ou fechar a janela de monitoramento não intefere em como ele será executado. Esse ainda ficará ativo em segundo plano. Caso seja necessário finalizar o script: pressione F3
 
 ### 2. Sincronizar os Produtos pelo Google Keep
 * Abra o [Google Keep](https://keep.google.com/) no navegador.
@@ -81,7 +81,9 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 ### 3. Executar a Impressão em Lote
 1. Deixe a **Rotina 1707** aberta no WinThor (preferencialmente maximizada).
 2. Pressione a tecla **`F2`** no teclado.
-3. Selecione o tipo de impressora no pop-up do AHK (**WMS 2** ou **Universal Printer**).
+3. Selecione o tipo de impressão no pop-up do AHK (**Impressão Direta** ou **Universal Printer**).
+3.1. Impressão Direta: imprime de acordo com a sua impressora padrão, localizada na lista de impressoras da rotina 1707 ao imprimir (Processo mais rápido).
+3.2. Universal Printer: imprime ultilizando a impressora universal que abre um software própio e seleciona automáticamente sua impressora padrão (Processo mais lento).
 4. O robô assumirá o controle e processará todos os códigos da lista sequencialmente.
 
 ---
@@ -101,8 +103,8 @@ https://github.com/user-attachments/assets/f71c4b0b-e39f-4b9d-b266-e798db05aa3c
 Se você mudar a resolução da tela ou mover a janela do WinThor:
 1. Feche os serviços correntes com o **`Encerrar tudo.exe`**.
 2. Abra o **`Configurar Painel.exe`**.
-3. Selecione a pasta do projeto atualizada e clique em **Configurar Localização do Ponteiro**.
-4. Escolha o ponto desejado (1 a 9), clique em **Ativar Captura** e clique com o **botão direito do mouse** sobre o alvo na tela do WinThor. Um sinal sonoro confirmará a gravação.
+3. Ao lado de cada localização do ponteiro basta clicar **Capturar** para ativar a opção de salvar o posicionamento. A janela do painel de controle é minimizada para captura.
+4. Posicione o mouse no lugar desejado e clique com o botão direito, nesse momento o painel de controle volta e altera as coordenadas desejadas.
 5. Clique em **💾 Salvar Configurações no Projeto**.
 
 ---
