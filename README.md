@@ -17,6 +17,7 @@
 # 🖨️ Automação de Impressão em Lote — WinThor (Rotina 1707)
 
 Sistema de automação inteligente desenvolvido para capturar códigos de produtos a partir de notas do **Google Keep** (via extensão de navegador) e realizar a impressão automática na **Rotina 1707 do ERP WinThor** utilizando **AutoHotkey v2.0** e **Python**.
+Aviso: cliques e digitação automatizados controlam o mouse e o teclado. Deixe o computador livre para evitar falhas no processo de automação.
 
 ---
 
