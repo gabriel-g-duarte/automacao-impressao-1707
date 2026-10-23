@@ -1,23 +1,23 @@
-# Tutorial de downloads
+## Tutorial de downloads
 * Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
 * Baixe o arquivo automacao-impressao.zip em realeses, baixe a versão mais recente e siga os próximos passos
 
 ---
 
-# Em caso de dúvidas ou problemas durante o uso 
+## Em caso de dúvidas ou problemas durante o uso 
 * Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br / D8059GD@dellys.com.br / gabrieldgad2007@gmail.com
 
 ---
 
-# 🖨️ Automação de Impressão em Lote — WinThor (Rotina 1707)
+## 🖨️ Automação de Impressão em Lote — WinThor (Rotina 1707)
 
 * Sistema de automação inteligente desenvolvido para capturar códigos de produtos a partir de notas do **Google Keep** (via extensão de navegador) e realizar a impressão automática na **Rotina 1707 do ERP WinThor** utilizando **AutoHotkey v2.0** e **Python**.
 * Aviso: cliques e digitação automatizados controlam o mouse e o teclado. Deixe o computador livre para evitar falhas no processo de automação.
 
 ---
 
-# Função de relatório
+## Função de relatório
 
 * Agora o sistema possui uma função de relatório, salvando a lista de códigos impressos junto com horário e data. Esses são salvos em .csv podendo ser executador por excel para visualização da lista.
 * É possível selecionar o local para salvar os mesmos, na função `Configurar Painel.exe`
@@ -25,7 +25,7 @@
 
 ---
 
-# Como ultilizar?
+## Como ultilizar?
 
 * O uso recomendado é digitalizar a lista de codigos completa, ultilizando um aplicativo ou a própia câmera ex.: a câmera do iPhone tem essa digitalização própia: digitalize, copie o texto e cole na nota do keep (ele detecta automáticamento o código no início de cada linha, e para uso funcional o código precisa ficar no início de cada linha. Códigos fora de cada linhas pode acarretar em possíveis erros no envio dos códigos para os arquivos).
 * Outros usos possíveis: modificar o a lista de códigos pela nota do keep, no computador. Modificar o arquivo codigos.txt mantendo cada código em cada linha.
@@ -45,6 +45,14 @@ https://github.com/user-attachments/assets/e0f92657-8802-41ba-a04e-c22647c0be6b
 Assista ao vídeo abaixo para ver como configurar a localização dos pontos de cliques do mouse na automação
 
 https://github.com/user-attachments/assets/fc80860b-efd2-4e37-90d8-339cef59c470
+
+---
+
+## Exemplo de digitalização pro keep
+
+Assista ao vídeo para ver um exemplo de como se pode digitalizar e enviar para o google keep
+
+https://github.com/user-attachments/assets/0f0cfbe4-fb7c-4957-9b37-68f85356d64c
 
 ---
 
