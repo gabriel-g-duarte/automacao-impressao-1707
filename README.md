@@ -1,5 +1,4 @@
 ## Tutorial de downloads
-* Instale o python em https://www.python.org/downloads/ na versão mais recente. Ao executar a instalação do .exe, baixe em PATH, esta opção aparece durante a instalação e confirme o mesmo em PATH.
 * Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
 * Baixe o arquivo automacao-impressao.zip em realeses, baixe a versão mais recente e siga os próximos passos
 
@@ -73,17 +72,15 @@ https://github.com/user-attachments/assets/0f0cfbe4-fb7c-4957-9b37-68f85356d64c
 * `config.json` — Arquivo de configuração dinâmico (caminhos, parâmetros e coordenadas $X, Y$).
 * `codigos.txt` — Arquivo de texto gerado automaticamente com a lista de códigos para processamento.
 * `extension_winthor/` — Pasta contendo a extensão do Chrome (`manifest.json`, `background.js`, `content.js`).
-* `Iniciar tudo.exe` — Atalho para execução diária rápida em segundo plano.
-* `Configurar Painel.exe` — Atalho para abrir o painel de calibração do ponteiro e configurações.
-* `Encerrar tudo.exe` — Utilitário para finalizar todas as instâncias em memória e resetar o sistema.
+* `AUT 1707` — Aplicativo com as funções de iniciar o servirdor, fechar todas as instâncias e configurar as preferências.
 
 ---
 
 ## Dia-a-Dia
 
 ### 1. Iniciar o Sistema
-* Dê um duplo clique no arquivo **`Iniciar tudo.exe`**.
-* O servidor Python será carregado silenciosamente em segundo plano (`pythonw`) e a janela de monitoramento do AutoHotkey surgirá na tela.
+* Dê um duplo clique no arquivo **`AUT 1707.exe`**.
+* A janela do aplicativo irá abrir, clique em iniciar tudo para abrir o servidor. Clique Abrir script AHK para abrir o script do autohotkey.
 * Caso opcional: minimizar ou fechar a janela de monitoramento não intefere em como ele será executado. Esse ainda ficará ativo em segundo plano. Caso seja necessário finalizar o script: pressione F3
 
 ### 2. Sincronizar os Produtos pelo Google Keep
@@ -117,8 +114,8 @@ https://github.com/user-attachments/assets/0f0cfbe4-fb7c-4957-9b37-68f85356d64c
 ##  Calibração de Coordenadas (Apenas se mudar de monitor/resolução)
 
 Se você mudar a resolução da tela ou mover a janela do WinThor:
-1. Feche os serviços correntes com o **`Encerrar tudo.exe`**.
-2. Abra o **`Configurar Painel.exe`**.
+1. Feche os serviços com o **`Encerrar tudo`** no aplicativo.
+2. Abra o **`Configurar Painel`**.
 3. Ao lado de cada localização do ponteiro basta clicar **Capturar** para ativar a opção de salvar o posicionamento. A janela do painel de controle é minimizada para captura.
 4. Posicione o mouse no lugar desejado e clique com o botão direito, nesse momento o painel de controle volta e altera as coordenadas desejadas.
 5. Clique em **💾 Salvar Configurações no Projeto**.
