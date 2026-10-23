@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUT_1707</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #112b3c 0%, #1a435d 50%, #0d2130 100%);
+      color: #ffffff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      user-select: none;
+      overflow: hidden;
+    }
+    
+    /* Efeitos de Vidro (Glassmorphism) */
+    .glass {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .glass-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+    .glass-green {
+      background: rgba(74, 222, 128, 0.22) !important;
+      border: 1px solid rgba(74, 222, 128, 0.5) !important;
+      color: #ffffff !important;
+    }
+    .glass-green:hover {
+      background: rgba(74, 222, 128, 0.38) !important;
+      box-shadow: 0 0 15px rgba(74, 222, 128, 0.3);
+    }
+    .glass-red {
+      background: rgba(239, 68, 68, 0.22) !important;
+      border: 1px solid rgba(239, 68, 68, 0.5) !important;
+      color: #ffffff !important;
+    }
+    .glass-red:hover {
+      background: rgba(239, 68, 68, 0.38) !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+    }
+    .glass-input {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      transition: all 0.2s ease;
+    }
+    .glass-input:focus {
+      border-color: #86efac;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(134, 239, 172, 0.2);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-0">
+
+  <!-- Container Principal Esticado em Largura -->
+  <div class="flex h-screen w-full flex-col overflow-hidden text-white glass">
+    
+    <!-- Barra Superior -->
+    <div class="flex items-center justify-between border-b border-white/10 bg-white/[0.04] px-5 py-2.5 shrink-0">
+      <span class="font-mono text-xs font-semibold tracking-wide text-white/70">AUT_1707</span>
+      <div class="flex items-center gap-1.5" aria-hidden="true">
+        <span class="size-2.5 rounded-full bg-white/20"></span>
+        <span class="size-2.5 rounded-full bg-white/20"></span>
+        <span class="size-2.5 rounded-full bg-[#4ade80]"></span>
+      </div>
+    </div>
+
+    <!-- Área de Conteúdo -->
+    <div class="flex-1 px-6 py-4 overflow-hidden">
+
+      <!-- ================= TELA 1: HOME ================= -->
+      <div id="view-home" class="flex flex-col gap-4">
+        
+        <!-- Header -->
+        <header class="flex items-center gap-4 border-b border-white/10 pb-4">
+          <div class="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white shadow-lg shadow-black/20">
+            <svg class="size-7 text-[#19455f]" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>
+          </div>
+          <div class="flex flex-col">
+            <h1 class="text-2xl font-extrabold tracking-tight text-white">AUT_1707</h1>
+            <p class="text-sm font-semibold text-white/70">Painel da Automação de Impressão</p>
+            <p class="mt-0.5 text-[11px] font-bold uppercase tracking-wider text-[#86efac]">
+              Operação 1707
+            </p>
+          </div>
+        </header>
+
+        <!-- Painel 01: Operação -->
+        <section class="glass relative overflow-hidden rounded-2xl p-4 border-[#4ade80]/60 shadow-[0_0_28px_-14px_#4ade80]">
+          <span class="absolute inset-y-0 left-0 w-1 bg-[#4ade80]"></span>
+          <header class="mb-3 flex items-start justify-between gap-3">
+            <div class="flex flex-col gap-0.5">
+              <h2 class="text-base font-bold text-white">Automação WinThor</h2>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-[#86efac]">Controle principal</p>
+            </div>
+            <span class="rounded-md border border-[#4ade80]/50 bg-[#4ade80]/15 px-2 py-1 font-mono text-[11px] font-bold text-[#bbf7d0]">
+              01
+            </span>
+          </header>
+
+          <div class="grid grid-cols-2 gap-3">
+            <button type="button" onclick="executarAcao('iniciar_tudo')" class="glass-btn glass-green flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white">
+              <svg class="size-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+              Iniciar Tudo
+            </button>
+            <button type="button" onclick="executarAcao('encerrar_tudo')" class="glass-btn glass-red flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white">
+              <svg class="size-4 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+              Encerrar Tudo
+            </button>
+            <button type="button" onclick="executarAcao('abrir_script_ahk')" class="glass-btn flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-white">
+              <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"/><polyline points="14 2 14 8 20 8"/><path d="m10 13-2 2 2 2"/><path d="m14 17 2-2-2-2"/></svg>
+              Abrir Script AHK
+            </button>
+            <button type="button" onclick="trocarTela('settings')" class="glass-btn flex h-11 items-center justify-center gap-2 rounded-xl text-sm font-bold text-[#bbf7d0]">
+              <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+              Configurar Painel
+            </button>
+          </div>
+        </section>
+
+        <!-- Status Bar -->
+        <div id="status-bar" class="glass flex items-center justify-center gap-2 rounded-xl py-2.5 text-center text-sm font-semibold text-white/70">
+          <span id="status-dot" class="size-2 rounded-full bg-white/50"></span>
+          <span id="status-text">Status: Aguardando comando</span>
+        </div>
+
+        <!-- Painel 02: Atalhos -->
+        <section class="glass relative overflow-hidden rounded-2xl p-4">
+          <header class="mb-3 flex items-start justify-between gap-3">
+            <div class="flex flex-col gap-0.5">
+              <h2 class="text-base font-bold text-white">Teclas de Atalho</h2>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-[#86efac]">Teclado</p>
+            </div>
+            <span class="rounded-md border border-white/15 bg-white/[0.06] px-2 py-1 font-mono text-[11px] font-bold text-white/60">
+              02
+            </span>
+          </header>
+
+          <ul class="flex flex-col divide-y divide-white/10 text-sm">
+            <li class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <span class="font-medium text-white/90">Pausar / Retomar</span>
+              <kbd class="glass-btn min-w-12 rounded-lg px-3 py-0.5 text-center font-mono text-sm font-bold text-sky-100">F1</kbd>
+            </li>
+            <li class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <span class="font-medium text-white/90">Iniciar Lista</span>
+              <kbd class="glass-btn min-w-12 rounded-lg px-3 py-0.5 text-center font-mono text-sm font-bold text-sky-100">F2</kbd>
+            </li>
+            <li class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <span class="font-medium text-white/90">Encerrar</span>
+              <kbd class="glass-btn min-w-12 rounded-lg px-3 py-0.5 text-center font-mono text-sm font-bold text-sky-100">F3</kbd>
+            </li>
+            <li class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+              <span class="font-medium text-white/90">Colar Clipboard</span>
+              <kbd class="glass-btn min-w-12 rounded-lg px-3 py-0.5 text-center font-mono text-sm font-bold text-sky-100">F4</kbd>
+            </li>
+          </ul>
+        </section>
+
+      </div>
+
+      <!-- ================= TELA 2: CONFIGURAÇÕES (2 COLUNAS) ================= -->
+      <div id="view-settings" class="flex flex-col gap-3.5 hidden">
+        
+        <button type="button" onclick="trocarTela('home')" class="glass-btn flex h-9 w-fit items-center gap-2 rounded-xl px-3.5 text-xs font-bold text-white">
+          <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+          Voltar ao Início
+        </button>
+
+        <!-- Painel 01: Informações Gerais & Impressão -->
+        <section class="glass relative overflow-hidden rounded-2xl p-4">
+          <header class="mb-3 flex items-start justify-between gap-3">
+            <div class="flex flex-col gap-0.5">
+              <h2 class="text-base font-bold text-white">Informações Gerais</h2>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-[#86efac]">Pastas e Impressão</p>
+            </div>
+            <span class="rounded-md border border-white/15 bg-white/[0.06] px-2 py-1 font-mono text-[11px] font-bold text-white/60">01</span>
+          </header>
+
+          <div class="grid grid-cols-12 gap-3 text-xs">
+            <div class="col-span-8 flex flex-col gap-2">
+              <div>
+                <label class="text-xs font-semibold text-white/75 block mb-1">Pasta da automação <span class="text-[#86efac]">*</span></label>
+                <div class="flex gap-2">
+                  <input id="cfg-pasta-automacao" type="text" class="glass-input h-9 w-full rounded-lg px-3 text-xs font-medium text-white" />
+                  <button type="button" onclick="procurarPasta('PASTA_AUTOMACAO')" class="glass-btn flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white">Procurar</button>
+                </div>
+              </div>
+
+              <div>
+                <label class="text-xs font-semibold text-white/75 block mb-1">Pasta do relatório de faltas <span class="text-[#86efac]">*</span></label>
+                <div class="flex gap-2">
+                  <input id="cfg-pasta-relatorios" type="text" class="glass-input h-9 w-full rounded-lg px-3 text-xs font-medium text-white" />
+                  <button type="button" onclick="procurarPasta('PASTA_RELATORIO_FALTAS')" class="glass-btn flex h-9 shrink-0 items-center gap-1.5 rounded-lg px-3 text-xs font-bold text-white">Procurar</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="col-span-4 flex flex-col justify-between">
+              <div>
+                <label class="text-xs font-semibold text-white/75 block mb-1">Nome da impressora padrão <span class="text-[#86efac]">*</span></label>
+                <input id="cfg-impressora" type="text" placeholder="Ex: WMS2" class="glass-input h-9 w-full rounded-lg px-3 text-xs font-medium text-white" />
+              </div>
+              <p class="text-[11px] text-white/50 leading-relaxed">Parâmetros gravados permanentemente no arquivo config.json.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Painel 02: Coordenadas Divididas em 2 Colunas -->
+        <section class="glass relative overflow-hidden rounded-2xl p-4 border-[#4ade80]/60 shadow-[0_0_28px_-14px_#4ade80]">
+          <span class="absolute inset-y-0 left-0 w-1 bg-[#4ade80]"></span>
+          <header class="mb-3 flex items-start justify-between gap-3">
+            <div class="flex flex-col gap-0.5">
+              <h2 class="text-base font-bold text-white">Coordenadas dos Pontos de Clique</h2>
+              <p class="text-[11px] font-bold uppercase tracking-wider text-[#86efac]">Mapeamento de Posições (X, Y)</p>
+            </div>
+            <span class="rounded-md border border-[#4ade80]/50 bg-[#4ade80]/15 px-2 py-1 font-mono text-[11px] font-bold text-[#bbf7d0]">02</span>
+          </header>
+
+          <div class="grid grid-cols-2 gap-5">
+            
+            <!-- Coluna 1 (5 Pontos) -->
+            <div class="flex flex-col gap-1.5">
+              <div class="grid grid-cols-[1fr_64px_64px_85px] gap-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-white/60">
+                <span>Ponto</span>
+                <span class="text-center">X</span>
+                <span class="text-center">Y</span>
+                <span class="text-center">Ação</span>
+              </div>
+              <ul id="lista-coordenadas-col1" class="flex flex-col gap-1.5"></ul>
+            </div>
+
+            <!-- Coluna 2 (4 Pontos + Botão Salvar) -->
+            <div class="flex flex-col justify-between gap-2">
+              <div>
+                <div class="grid grid-cols-[1fr_64px_64px_85px] gap-2 px-1 text-[11px] font-semibold uppercase tracking-wider text-white/60 mb-1.5">
+                  <span>Ponto</span>
+                  <span class="text-center">X</span>
+                  <span class="text-center">Y</span>
+                  <span class="text-center">Ação</span>
+                </div>
+                <ul id="lista-coordenadas-col2" class="flex flex-col gap-1.5"></ul>
+              </div>
+
+              <!-- Botão Salvar Integrado na 2ª Coluna -->
+              <div class="flex flex-col gap-1 pt-1">
+                <button type="button" onclick="salvarConfiguracoes()" class="glass-btn glass-green flex h-11 w-full items-center justify-center gap-2 rounded-xl text-xs font-extrabold text-white">
+                  <svg class="size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                  Salvar configurações
+                </button>
+                <p id="cfg-feedback" class="h-4 text-center text-[11px] font-medium"></p>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const POINTS = [
+      'CampoCodigo',
+      'BotaoImprimir2',
+      'BotaoTrocarImpressora',
+      'ImpressoraWMS2',
+      'BotaoOK',
+      'BotaoOK_Informacao',
+      'BotaoOK_Atencao',
+      'BotaoImprimirUniversal',
+      'BotaoFechar'
+    ];
+
+    function trocarTela(tela) {
+      document.getElementById("view-home").classList.toggle("hidden", tela !== "home");
+      document.getElementById("view-settings").classList.toggle("hidden", tela !== "settings");
+      
+      if (tela === "settings") {
+        carregarConfiguracoes();
+      }
+    }
+
+    async function executarAcao(metodo) {
+      const dot = document.getElementById("status-dot");
+      const text = document.getElementById("status-text");
+
+      text.innerText = "Status: Processando...";
+      dot.className = "size-2 rounded-full bg-sky-300 animate-pulse";
+
+      try {
+        const res = await window.pywebview.api[metodo]();
+        text.innerText = "Status: " + (res.msg || "Concluído");
+
+        if (res.ok) {
+          dot.className = "size-2 rounded-full bg-[#4ade80]";
+        } else {
+          dot.className = "size-2 rounded-full bg-red-400";
+        }
+      } catch (err) {
+        text.innerText = "Status: Erro na execução";
+        dot.className = "size-2 rounded-full bg-red-400";
+      }
+    }
+
+    async function carregarConfiguracoes() {
+      const cfg = await window.pywebview.api.carregar_config();
+      document.getElementById("cfg-pasta-automacao").value = cfg.PASTA_AUTOMACAO || "";
+      document.getElementById("cfg-pasta-relatorios").value = cfg.PASTA_RELATORIO_FALTAS || "";
+      document.getElementById("cfg-impressora").value = cfg.NOME_IMPRESSORA || "";
+
+      const col1 = document.getElementById("lista-coordenadas-col1");
+      const col2 = document.getElementById("lista-coordenadas-col2");
+      col1.innerHTML = "";
+      col2.innerHTML = "";
+
+      POINTS.forEach((point, index) => {
+        const x = cfg[point + "_X"] !== undefined ? cfg[point + "_X"] : "";
+        const y = cfg[point + "_Y"] !== undefined ? cfg[point + "_Y"] : "";
+
+        const htmlItem = `
+          <li id="row-${point}" class="grid grid-cols-[1fr_64px_64px_85px] items-center gap-2 rounded-md px-1 py-0.5">
+            <span class="truncate font-mono text-xs font-semibold text-white/90" title="${point}">${point}</span>
+            <input id="coord-${point}-X" type="text" value="${x}" placeholder="0" class="glass-input h-7 px-1.5 text-center font-mono text-xs rounded-lg" />
+            <input id="coord-${point}-Y" type="text" value="${y}" placeholder="0" class="glass-input h-7 px-1.5 text-center font-mono text-xs rounded-lg" />
+            <button id="btn-cap-${point}" type="button" onclick="capturarPoint('${point}')" class="glass-btn flex h-7 items-center justify-center gap-1 rounded-lg text-xs font-bold text-white">
+              <span>Capturar</span>
+            </button>
+          </li>
+        `;
+
+        if (index < 5) {
+          col1.innerHTML += htmlItem;
+        } else {
+          col2.innerHTML += htmlItem;
+        }
+      });
+    }
+
+    function capturarPoint(point) {
+      const row = document.getElementById(`row-${point}`);
+      const btn = document.getElementById(`btn-cap-${point}`);
+
+      if (row) row.classList.add("bg-[#4ade80]/10");
+      if (btn) {
+        btn.classList.add("glass-green");
+        btn.querySelector("span").innerText = "Clique...";
+      }
+
+      window.pywebview.api.capturar_coordenada(point);
+    }
+
+    function atualizarCoordenadaCapturada(point, x, y) {
+      const elX = document.getElementById(`coord-${point}-X`);
+      const elY = document.getElementById(`coord-${point}-Y`);
+      if (elX) elX.value = x;
+      if (elY) elY.value = y;
+
+      const row = document.getElementById(`row-${point}`);
+      const btn = document.getElementById(`btn-cap-${point}`);
+
+      if (row) row.classList.remove("bg-[#4ade80]/10");
+      if (btn) {
+        btn.classList.remove("glass-green");
+        btn.querySelector("span").innerText = "Capturar";
+      }
+    }
+
+    async function procurarPasta(campo) {
+      try {
+        const pasta = await window.pywebview.api.selecionar_pasta();
+        if (pasta) {
+          if (campo === 'PASTA_AUTOMACAO') document.getElementById("cfg-pasta-automacao").value = pasta;
+          if (campo === 'PASTA_RELATORIO_FALTAS') document.getElementById("cfg-pasta-relatorios").value = pasta;
+        }
+      } catch (e) {}
+    }
+
+    async function salvarConfiguracoes() {
+      const fb = document.getElementById("cfg-feedback");
+      const autoDir = document.getElementById("cfg-pasta-automacao").value.trim();
+      const repDir = document.getElementById("cfg-pasta-relatorios").value.trim();
+      const printName = document.getElementById("cfg-impressora").value.trim();
+
+      if (!autoDir || !repDir || !printName) {
+        fb.className = "h-4 text-center text-[11px] font-medium text-red-300";
+        fb.innerText = "Preencha todos os campos obrigatórios (*).";
+        return;
+      }
+
+      const payload = {
+        PASTA_AUTOMACAO: autoDir,
+        PASTA_RELATORIO_FALTAS: repDir,
+        NOME_IMPRESSORA: printName
+      };
+
+      POINTS.forEach(p => {
+        payload[p + "_X"] = parseInt(document.getElementById(`coord-${p}-X`).value) || 0;
+        payload[p + "_Y"] = parseInt(document.getElementById(`coord-${p}-Y`).value) || 0;
+      });
+
+      const res = await window.pywebview.api.salvar_config(payload);
+      fb.className = res.ok ? "h-4 text-center text-[11px] font-medium text-[#86efac]" : "h-4 text-center text-[11px] font-medium text-red-300";
+      fb.innerText = res.msg;
+    }
+  </script>
+</body>
+</html>

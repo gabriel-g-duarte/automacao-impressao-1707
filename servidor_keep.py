@@ -1,8 +1,17 @@
 import os
+import sys
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+def obter_diretorio_real():
+    if getattr(sys, 'frozen', False):
+        return os.path.dirname(os.path.abspath(sys.executable))
+    caminho_script = os.path.dirname(os.path.abspath(__file__))
+    if "temp" in caminho_script.lower() or "appdata" in caminho_script.lower():
+        return os.getcwd()
+    return caminho_script
+
+BASE_DIR = obter_diretorio_real()
 CONFIG_FILE = os.path.join(BASE_DIR, "config.json")
 
 def obter_caminho_codigos():
@@ -39,7 +48,7 @@ class KeepHandler(BaseHTTPRequestHandler):
 
             caminho_destino = obter_caminho_codigos()
 
-            # Escreve o arquivo codigos.txt exclusivamente na PASTA_AUTOMACAO
+            # Escreve o arquivo codigos.txt na PASTA_AUTOMACAO configurada
             with open(caminho_destino, "w", encoding="utf-8") as f:
                 f.write(codigos)
 
@@ -70,10 +79,23 @@ class KeepHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         return
 
+_server_rodando = False
+
 def run(port=8000):
-    server_address = ('0.0.0.0', port)
-    httpd = HTTPServer(server_address, KeepHandler)
-    httpd.serve_forever()
+    global _server_rodando
+    if _server_rodando:
+        return
+    try:
+        server_address = ('0.0.0.0', port)
+        httpd = HTTPServer(server_address, KeepHandler)
+        _server_rodando = True
+        httpd.serve_forever()
+    except Exception as e:
+        _server_rodando = False
+        print(f"Erro no servidor Keep: {e}")
+
+# Alias para o app.py chamar via servidor_keep.iniciar()
+iniciar = run
 
 if __name__ == "__main__":
     run()
