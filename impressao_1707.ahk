@@ -656,7 +656,7 @@ ProcessarCodigoDireto(codigo, contador := 1, total := 1) {
         tempoImp := 0
         hwndSelecao := 0
 
-        while (tempoImp < 50) {
+        while (tempoImp < 350) {
             hwndSelecao := VerificarJanelaExata(["Imprimir (Remoto)", "Print (Remoto)"])
             if (hwndSelecao)
                 break
