@@ -1,4 +1,4 @@
-console.log("WinThor Keep AutoSync v11.0 - Modo Original Restaurado");
+console.log("WinThor Keep AutoSync v12.0 - Conexão Direta (Sem Background Service Worker)");
 
 function criarIndicador() {
     if (document.getElementById("winthor-status-badge")) return;
@@ -33,7 +33,6 @@ window.ultimosCodigosEnviados = "";
 window.mostrarSucesso = false;
 
 function obterTextoCorpoNota() {
-    // Busca a caixa modal aberta ou o corpo da página (método original)
     let container = document.querySelector('div[role="dialog"]') || document.body;
     let editaveis = Array.from(container.querySelectorAll('div[contenteditable="true"]'));
     let textoTotal = "";
@@ -41,17 +40,34 @@ function obterTextoCorpoNota() {
     editaveis.forEach(el => {
         let label = el.getAttribute('aria-label') || "";
         if (label.includes('Pesquisar') || label.includes('Search')) return;
-        
-        // Concatena o texto de cada linha individual da nota
         textoTotal += (el.innerText || "") + "\n"; 
     });
 
     return textoTotal;
 }
 
-function verificarKeep() {
-    // TRAVA DE SEGURANÇA: Se o Chrome for minimizado, interrompe a leitura
-    // para não corromper o arquivo codigos.txt
+async function enviarParaServidorPython(textoCodigos) {
+    try {
+        const response = await fetch("http://localhost:5000/api/codigos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ texto: textoCodigos })
+        });
+
+        if (response.ok) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (err) {
+        // Se o servidor Python estiver desligado, captura o erro sem estourar no Chrome
+        return false;
+    }
+}
+
+async function verificarKeep() {
     if (document.visibilityState !== "visible") {
         return; 
     }
@@ -71,7 +87,6 @@ function verificarKeep() {
         let linhaLimpa = linha.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
         if (/editad|modificad|criad|edited|created|\b\d{1,2}:\d{2}\b/i.test(linhaLimpa)) return;
 
-        // Identifica o código numérico no início de cada linha
         let match = linhaLimpa.match(/^[-*•☑☐\s]*(\d{2,6})(?!\d)/);
         if (match) {
             codigosEncontrados.push(match[1]);
@@ -83,6 +98,7 @@ function verificarKeep() {
     if (codigosEncontrados.length > 0) {
         let chaveCodigos = codigosEncontrados.join(",");
 
+        // Se os códigos forem iguais aos últimos, apenas mostra "Lendo" e não envia nada
         if (chaveCodigos === window.ultimosCodigosEnviados) {
             if (!window.mostrarSucesso) {
                 atualizarStatus(`🟢 Lendo: ${codigosEncontrados.length} códigos`, "#1e293b", "#38bdf8");
@@ -92,16 +108,17 @@ function verificarKeep() {
 
         let textoParaPython = codigosEncontrados.join("\n");
 
-        chrome.runtime.sendMessage({ type: "SEND_DATA", texto: textoParaPython }, (response) => {
-            if (chrome.runtime.lastError || !response || response.status !== "SUCCESS") {
-                atualizarStatus("🔴 Servidor Python desligado!", "#991b1b", "#ffffff");
-            } else {
-                window.ultimosCodigosEnviados = chaveCodigos;
-                window.mostrarSucesso = true;
-                atualizarStatus(`✅ Enviados ${codigosEncontrados.length} códigos p/ TXT`, "#15803d", "#ffffff");
-                setTimeout(() => { window.mostrarSucesso = false; }, 2500);
-            }
-        });
+        // Envio direto via fetch do content script para o Flask/Python
+        let sucesso = await enviarParaServidorPython(textoParaPython);
+
+        if (sucesso) {
+            window.ultimosCodigosEnviados = chaveCodigos;
+            window.mostrarSucesso = true;
+            atualizarStatus(`✅ Enviados ${codigosEncontrados.length} códigos p/ TXT`, "#15803d", "#ffffff");
+            setTimeout(() => { window.mostrarSucesso = false; }, 2500);
+        } else {
+            atualizarStatus("🔴 Servidor Python desligado!", "#991b1b", "#ffffff");
+        }
     } else {
         if (!window.mostrarSucesso) atualizarStatus("🟡 Nenhum código detectado", "#ca8a04", "#ffffff");
     }

@@ -5,12 +5,9 @@ import time
 import ctypes
 import threading
 import subprocess
+import importlib
+import urllib.request
 import webview
-
-try:
-    import servidor_keep
-except ImportError:
-    servidor_keep = None
 
 class POINT(ctypes.Structure):
     _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
@@ -29,6 +26,10 @@ def obter_diretorio_real():
     return caminho_script
 
 DIRETORIO_ATUAL = obter_diretorio_real()
+
+if DIRETORIO_ATUAL not in sys.path:
+    sys.path.insert(0, DIRETORIO_ATUAL)
+
 CONFIG_FILE = os.path.join(DIRETORIO_ATUAL, "config.json")
 
 DEFAULTS_CONFIG = {
@@ -46,10 +47,28 @@ DEFAULTS_CONFIG = {
     "BotaoFechar_X": 2410, "BotaoFechar_Y": 35
 }
 
+def fechar_script_ahk_especifico(script_nome="impressao_1707.ahk"):
+    """Encerra apenas as janelas do AutoHotkey cujo título/caminho contenha o nome do script especificado."""
+    user32 = ctypes.windll.user32
+    WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+    
+    def enum_win_cb(hwnd, lparam):
+        length = user32.GetWindowTextLengthW(hwnd)
+        if length > 0:
+            buff = ctypes.create_unicode_buffer(length + 1)
+            user32.GetWindowTextW(hwnd, buff, length + 1)
+            if script_nome.lower() in buff.value.lower():
+                # Envia mensagem WM_CLOSE (0x0010) para fechar o script AHK específico
+                user32.PostMessageW(hwnd, 0x0010, 0, 0)
+        return True
+
+    user32.EnumWindows(WNDENUMPROC(enum_win_cb), 0)
+
 class ApiBridge:
     def __init__(self):
         self._window = None
         self._monitor_window = None
+        self._servidor_iniciado = False
         self._ultimo_status_valido = {"status": "aguardando", "total_processados": 0, "codigo_atual": "-"}
 
     def set_window(self, window):
@@ -103,7 +122,6 @@ class ApiBridge:
         if data_encontrada:
             try:
                 partes = data_encontrada.split("|")
-                # Estrutura: AUT1707_DATA | status | total_processados | codigo_atual | msg_erro
                 st = partes[1]
                 tot = int(partes[2]) if partes[2].isdigit() else 0
                 cod = partes[3]
@@ -182,19 +200,47 @@ class ApiBridge:
         threading.Thread(target=monitorar_processo_ahk, daemon=True).start()
 
     def iniciar_tudo(self):
-        if servidor_keep and hasattr(servidor_keep, 'iniciar'):
-            threading.Thread(target=servidor_keep.iniciar, daemon=True).start()
-            return {"ok": True, "msg": "Servidor Keep INICIADO com sucesso!"}
-        elif servidor_keep:
-            return {"ok": True, "msg": "Módulo servidor_keep carregado."}
-        return {"ok": False, "msg": "Arquivo servidor_keep.py não encontrado no projeto."}
+        if self._servidor_iniciado:
+            return {"ok": True, "msg": "Servidor Keep JÁ ESTÁ EM EXECUÇÃO!"}
+
+        try:
+            if "servidor_keep" in sys.modules:
+                servidor_keep = importlib.reload(sys.modules["servidor_keep"])
+            else:
+                servidor_keep = importlib.import_module("servidor_keep")
+
+            if hasattr(servidor_keep, 'iniciar'):
+                threading.Thread(target=servidor_keep.iniciar, daemon=True).start()
+                self._servidor_iniciado = True
+                return {"ok": True, "msg": "Servidor Keep INICIADO com sucesso!"}
+            else:
+                return {"ok": False, "msg": "Função 'iniciar' não encontrada em servidor_keep.py"}
+        except Exception as e:
+            return {"ok": False, "msg": f"Erro ao carregar servidor_keep: {e}"}
 
     def encerrar_tudo(self):
-        CREATE_NO_WINDOW = 0x08000000
-        subprocess.call('taskkill /f /im AutoHotkey.exe', creationflags=CREATE_NO_WINDOW)
-        subprocess.call('taskkill /f /im AutoHotkey64.exe', creationflags=CREATE_NO_WINDOW)
-        subprocess.call('taskkill /f /im AutoHotkey32.exe', creationflags=CREATE_NO_WINDOW)
-        
+        # 1. Encerra apenas o script AHK impressao_1707.ahk
+        fechar_script_ahk_especifico("impressao_1707.ahk")
+
+        # 2. Chama o encerramento do servidor_keep se houver método no módulo
+        if "servidor_keep" in sys.modules:
+            servidor_keep = sys.modules["servidor_keep"]
+            if hasattr(servidor_keep, 'parar'):
+                try:
+                    servidor_keep.parar()
+                except Exception:
+                    pass
+
+        # Tenta enviar requisição de shutdown para a API local (se configurada)
+        try:
+            req = urllib.request.Request("http://127.0.0.1:5000/shutdown", method="POST")
+            urllib.request.urlopen(req, timeout=1)
+        except Exception:
+            pass
+
+        self._servidor_iniciado = False
+
+        # 3. Fecha a janela do monitor se aberta
         if self._monitor_window:
             try:
                 self._monitor_window.destroy()
@@ -202,7 +248,7 @@ class ApiBridge:
                 pass
             self._monitor_window = None
 
-        return {"ok": True, "msg": "Processos ENCERRADOS com sucesso."}
+        return {"ok": True, "msg": "Processo impressao_1707.ahk e Servidor Keep ENCERRADOS."}
 
     def abrir_script_ahk(self):
         script_path = None
@@ -251,4 +297,4 @@ if __name__ == "__main__":
         js_api=api
     )
     api.set_window(window)
-    webview.start()
+    webview.start(debug=False)

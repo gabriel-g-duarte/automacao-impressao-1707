@@ -1,23 +1,21 @@
 {
   "manifest_version": 3,
   "name": "WinThor Keep AutoSync",
-  "version": "5.1",
-  "description": "Sincroniza notas do Google Keep com o servidor local do WinThor",
-  "permissions": [
-    "activeTab",
-    "scripting"
-  ],
+  "version": "12.0",
+  "description": "Captura códigos do Google Keep e envia para o servidor local do WinThor",
   "host_permissions": [
-    "http://127.0.0.1:8000/*",
-    "https://keep.google.com/*"
+    "http://localhost:5000/*",
+    "http://127.0.0.1:5000/*"
   ],
-  "background": {
-    "service_worker": "background.js"
-  },
   "content_scripts": [
     {
-      "matches": ["https://keep.google.com/*"],
-      "js": ["content.js"]
+      "matches": [
+        "https://keep.google.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
     }
   ]
 }
