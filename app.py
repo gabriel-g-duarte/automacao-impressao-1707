@@ -7,7 +7,6 @@ import threading
 import subprocess
 import webview
 
-# Importa o seu módulo do servidor Keep
 try:
     import servidor_keep
 except ImportError:
@@ -50,6 +49,8 @@ DEFAULTS_CONFIG = {
 class ApiBridge:
     def __init__(self):
         self._window = None
+        self._monitor_window = None
+        self._ultimo_status_valido = {"status": "aguardando", "total_processados": 0, "codigo_atual": "-"}
 
     def set_window(self, window):
         self._window = window
@@ -79,9 +80,109 @@ class ApiBridge:
         except Exception as e:
             return {"ok": False, "msg": f"Erro ao salvar: {e}"}
 
+    def ler_status(self):
+        user32 = ctypes.windll.user32
+        data_encontrada = None
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+
+        def enum_win_cb(hwnd, lparam):
+            nonlocal data_encontrada
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length > 0:
+                buff = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buff, length + 1)
+                val = buff.value
+                if val.startswith("AUT1707_DATA|"):
+                    data_encontrada = val
+                    return False
+            return True
+
+        user32.EnumWindows(WNDENUMPROC(enum_win_cb), 0)
+
+        if data_encontrada:
+            try:
+                partes = data_encontrada.split("|")
+                # Estrutura: AUT1707_DATA | status | total_processados | codigo_atual | msg_erro
+                st = partes[1]
+                tot = int(partes[2]) if partes[2].isdigit() else 0
+                cod = partes[3]
+                msg = partes[4] if len(partes) > 4 else "none"
+                tem_erro = (st == "erro" or msg != "none")
+
+                res = {
+                    "status": st,
+                    "total_processados": tot,
+                    "codigo_atual": cod,
+                    "erro": tem_erro,
+                    "codigo_erro": cod if tem_erro else "",
+                    "mensagem_erro": msg if tem_erro and msg != "none" else ""
+                }
+                self._ultimo_status_valido = res
+                return res
+            except Exception:
+                pass
+
+        return self._ultimo_status_valido
+
+    def ahk_esta_rodando(self, script_nome="impressao_1707.ahk"):
+        user32 = ctypes.windll.user32
+        rodando = False
+
+        WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_void_p, ctypes.c_void_p)
+
+        def enum_win_cb(hwnd, lparam):
+            nonlocal rodando
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length > 0:
+                buff = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buff, length + 1)
+                if script_nome.lower() in buff.value.lower():
+                    rodando = True
+                    return False
+            return True
+
+        user32.EnumWindows(WNDENUMPROC(enum_win_cb), 0)
+        return rodando
+
+    def abrir_janela_monitor(self):
+        if self._monitor_window:
+            try:
+                self._monitor_window.destroy()
+            except Exception:
+                pass
+            self._monitor_window = None
+
+        caminho_monitor_html = os.path.join(DIRETORIO_ATUAL, "monitor.html")
+
+        monitor_win = webview.create_window(
+            title="AUT_1707 - Monitor",
+            url=caminho_monitor_html,
+            width=420,
+            height=280,
+            resizable=False,
+            on_top=True,
+            background_color='#0D2130',
+            js_api=self
+        )
+        self._monitor_window = monitor_win
+
+        def monitorar_processo_ahk():
+            time.sleep(2)
+            while True:
+                time.sleep(1.0)
+                if not self.ahk_esta_rodando("impressao_1707.ahk"):
+                    try:
+                        monitor_win.destroy()
+                    except Exception:
+                        pass
+                    self._monitor_window = None
+                    break
+
+        threading.Thread(target=monitorar_processo_ahk, daemon=True).start()
+
     def iniciar_tudo(self):
         if servidor_keep and hasattr(servidor_keep, 'iniciar'):
-            # Roda a função de início do servidor Keep em uma thread separada
             threading.Thread(target=servidor_keep.iniciar, daemon=True).start()
             return {"ok": True, "msg": "Servidor Keep INICIADO com sucesso!"}
         elif servidor_keep:
@@ -93,6 +194,14 @@ class ApiBridge:
         subprocess.call('taskkill /f /im AutoHotkey.exe', creationflags=CREATE_NO_WINDOW)
         subprocess.call('taskkill /f /im AutoHotkey64.exe', creationflags=CREATE_NO_WINDOW)
         subprocess.call('taskkill /f /im AutoHotkey32.exe', creationflags=CREATE_NO_WINDOW)
+        
+        if self._monitor_window:
+            try:
+                self._monitor_window.destroy()
+            except Exception:
+                pass
+            self._monitor_window = None
+
         return {"ok": True, "msg": "Processos ENCERRADOS com sucesso."}
 
     def abrir_script_ahk(self):
@@ -104,7 +213,8 @@ class ApiBridge:
         
         if script_path and os.path.exists(script_path):
             os.startfile(script_path)
-            return {"ok": True, "msg": f"Script {os.path.basename(script_path)} aberto."}
+            threading.Thread(target=self.abrir_janela_monitor, daemon=True).start()
+            return {"ok": True, "msg": f"Script {os.path.basename(script_path)} e Monitor HTML iniciados."}
             
         return {"ok": False, "msg": "Nenhum arquivo .ahk encontrado na pasta."}
 
@@ -130,12 +240,14 @@ class ApiBridge:
 
 if __name__ == "__main__":
     api = ApiBridge()
+    caminho_index_html = os.path.join(DIRETORIO_ATUAL, "index.html")
     window = webview.create_window(
         title="AUT_1707",
-        url="index.html",
+        url=caminho_index_html,
         width=950,
         height=800,
         resizable=False,
+        background_color='#0D2130',
         js_api=api
     )
     api.set_window(window)

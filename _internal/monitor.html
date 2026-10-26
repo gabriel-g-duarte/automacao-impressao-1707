@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUT_1707 - Monitor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #112b3c 0%, #1a435d 50%, #0d2130 100%);
+      color: #ffffff;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      user-select: none;
+      overflow: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center h-screen w-screen p-0 m-0">
+
+  <div class="flex h-full w-full flex-col overflow-hidden text-white glass p-4 gap-3">
+    
+    <!-- Cabeçalho -->
+    <header class="flex items-center gap-3 border-b border-white/10 pb-3 shrink-0">
+      <img src="icone.png" alt="AUT_1707" class="size-10 shrink-0 rounded-xl object-cover shadow-lg shadow-black/30">
+      <div class="flex flex-col">
+        <h1 class="text-base font-extrabold tracking-tight text-white leading-none">AUT_1707</h1>
+        <p class="text-[11px] font-bold uppercase tracking-wider text-[#86efac] mt-1">
+          Painel de Monitoramento
+        </p>
+      </div>
+    </header>
+
+    <!-- Corpo do Status -->
+    <div class="flex-1 flex flex-col justify-center gap-2.5">
+      
+      <!-- Caixa Principal de Status -->
+      <div id="box-status" class="glass relative overflow-hidden rounded-xl p-3 border-[#4ade80]/40 text-center flex flex-col items-center justify-center gap-1">
+        <div class="flex items-center gap-2">
+          <span id="status-dot" class="size-2.5 rounded-full bg-white/40"></span>
+          <span id="txt-status" class="text-sm font-bold text-white/80">Aguardando início...</span>
+        </div>
+      </div>
+
+      <!-- Progresso -->
+      <div class="glass rounded-xl p-2.5 text-center">
+        <p id="txt-progresso" class="text-xs font-semibold text-white/80">Processados: 0</p>
+      </div>
+
+      <!-- Alerta de Erro -->
+      <div id="box-erro" class="glass rounded-xl p-2.5 text-center border-red-500/50 hidden bg-red-500/10">
+        <p id="txt-erro" class="text-xs font-bold text-red-300"></p>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    let timer = null;
+
+    async function atualizarStatus() {
+      if (!window.pywebview || !window.pywebview.api) return;
+      
+      try {
+        const data = await window.pywebview.api.ler_status();
+        if (!data) return;
+
+        const txtStatus = document.getElementById("txt-status");
+        const txtProg = document.getElementById("txt-progresso");
+        const boxErro = document.getElementById("box-erro");
+        const txtErro = document.getElementById("txt-erro");
+        const dot = document.getElementById("status-dot");
+
+        if (data.status === "imprimindo") {
+          txtStatus.innerText = "Imprimindo código: " + (data.codigo_atual || "-");
+          txtStatus.className = "text-sm font-bold text-sky-300";
+          dot.className = "size-2.5 rounded-full bg-sky-400 animate-pulse";
+          boxErro.classList.add("hidden");
+        } else if (data.status === "aviso") {
+          txtStatus.innerText = "Atenção / Reenviando: " + (data.codigo_atual || "-");
+          txtStatus.className = "text-sm font-bold text-amber-300";
+          dot.className = "size-2.5 rounded-full bg-amber-400 animate-ping";
+          boxErro.classList.add("hidden");
+        } else if (data.status === "concluido") {
+          txtStatus.innerText = "Impressão finalizada com sucesso!";
+          txtStatus.className = "text-sm font-bold text-[#86efac]";
+          dot.className = "size-2.5 rounded-full bg-[#4ade80]";
+          boxErro.classList.add("hidden");
+        } else if (data.status === "erro" || data.erro) {
+          txtStatus.innerText = "Falha na execução";
+          txtStatus.className = "text-sm font-bold text-red-400";
+          dot.className = "size-2.5 rounded-full bg-red-500";
+          txtErro.innerText = "Código: " + (data.codigo_erro || "-") + "\n" + (data.mensagem_erro || "");
+          boxErro.classList.remove("hidden");
+        } else {
+          txtStatus.innerText = "Status: Aguardando...";
+          txtStatus.className = "text-sm font-bold text-white/70";
+          dot.className = "size-2.5 rounded-full bg-white/40";
+          boxErro.classList.add("hidden");
+        }
+
+        txtProg.innerText = "Processados: " + (data.total_processados || 0);
+      } catch (e) {}
+    }
+
+    function iniciarLoop() {
+      if (timer) clearInterval(timer);
+      atualizarStatus();
+      timer = setInterval(atualizarStatus, 500);
+    }
+
+    if (window.pywebview && window.pywebview.api) {
+      iniciarLoop();
+    } else {
+      window.addEventListener('pywebviewready', iniciarLoop);
+    }
+  </script>
+</body>
+</html>
