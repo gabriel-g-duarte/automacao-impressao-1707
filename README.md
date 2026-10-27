@@ -1,34 +1,52 @@
-## Tutorial de downloads
-* Instale o AutoHotkey em https://www.autohotkey.com/ na versão mais recente
-* Baixe o arquivo automacao-impressao.zip em realeses, baixe a versão mais recente e siga os próximos passos
+# AUT_1707 — Automação de Impressão em Lote (WinThor 1707) <img width="1024" height="1024" alt="icone" src="https://github.com/user-attachments/assets/e299755d-1fe5-47c3-83e5-92a05cde71a8" />
+
+
+Sistema de automação inteligente desenvolvido para capturar códigos de produtos a partir de notas do **Google Keep** (via extensão de navegador), sincronizá-los com um servidor local e realizar a impressão automática em lote na **Rotina 1707 do ERP WinThor** (Ambiente Remoto) utilizando **AutoHotkey v2.0** e **Python (pywebview + Flask)**.
+
+> ⚠️ **Aviso Importante:** A automação assume o controle do mouse e teclado durante o ciclo de impressão. Deixe o computador livre enquanto o robô estiver em execução para evitar falhas.
 
 ---
 
-## Em caso de dúvidas ou problemas durante o uso 
-* Entrar em contato pelo e-mail ou pelo microsoft teams: gabriel.duarte@dellys.com.br / D8059GD@dellys.com.br / gabrieldgad2007@gmail.com
+## 📥 Downloads e Instalação
+
+1. **AutoHotkey v2.0:** Faça o download e instale a versão mais recente em [autohotkey.com](https://www.autohotkey.com/).
+2. **Pacote da Automação:** Baixe o arquivo `automacao-impressao.zip` na seção de **Releases** mais recente do repositório e extraia na pasta desejada.
 
 ---
 
-## 🖨️ Automação de Impressão em Lote — WinThor (Rotina 1707)
+## 📐 Arquitetura do Sistema
 
-* Sistema de automação inteligente desenvolvido para capturar códigos de produtos a partir de notas do **Google Keep** (via extensão de navegador) e realizar a impressão automática na **Rotina 1707 do ERP WinThor** utilizando **AutoHotkey v2.0** e **Python**.
-* Aviso: cliques e digitação automatizados controlam o mouse e o teclado. Deixe o computador livre para evitar falhas no processo de automação.
+```
+[Google Keep] ──(HTTP POST)──> [Servidor Flask Python] ──(Salva)──> [codigos.csv]
+                                       │                                  │
+                                (Executa em Thread)               (Lido pelo AHK)
+                                       │                                  │
+                                [AUT_1707.exe] ──(IPC Memória)──> [impressao_1707.ahk] ──> [WinThor 1707]
+
+```
+
+1. **Extensão Web (`extension_winthor`):** Extensão leve para Chrome/Edge que captura sequências numéricas de produtos do Google Keep e envia diretamente via HTTP POST para `http://localhost:5000/api/codigos` (sem Service Workers intermediários para evitar instabilidades).
+2. **Servidor Local Python (`servidor_keep.py`):** Servidor Flask em segundo plano integrado ao aplicativo principal, responsável por receber os códigos e atualizar o arquivo `codigos.csv`.
+3. **Painel de Controle e Monitor (`AUT_1707.exe`):** Aplicativo gráfico (`pywebview`) para gerenciamento do sistema, inicialização de processos, calibração de coordenadas $X, Y$ e exibição do painel de monitoramento de status em tempo real.
+4. **Robô AutoHotkey (`impressao_1707.ahk`):** Script responsável pela automação de cliques, digitação, troca de impressora e tratamento de pop-ups no WinThor. Transmite o status para o painel via janela oculta em memória (IPC).
 
 ---
 
-## Função de relatório
+## 📂 Estrutura de Arquivos
 
-* Agora o sistema possui uma função de relatório, salvando a lista de códigos impressos junto com horário e data. Esses são salvos em .csv podendo ser executador por excel para visualização da lista.
-* É possível selecionar o local para salvar os mesmos, na função `Configurar Painel.exe`
-* Ao selecionar uma pasta ele irá criar uma subpasta referente ao ano atual. Nessa subpasta ele irá criar um arquivo .csv para o mês atual, e cria para cada outro mês que estiver. A escolha do arquivo .csv é pela maior velocidade de salvamento, e esta função de relatório possibilita exportar os dados. Fazendo com que o usuário escolha como ele prefere usar estes dados.
+```
+AUT_1707/
+├── AUT_1707.exe           # Aplicativo principal de controle e gerenciamento
+├── _internal/             # Módulos compilados e dependências (PyInstaller --onedir)
+├── impressao_1707.ahk     # Script robô do AutoHotkey v2
+├── servidor_keep.py       # Servidor Flask local para recebimento do Keep
+├── config.json            # Configurações de coordenadas, caminhos e impressora
+├── codigos.csv            # Lista de códigos atualizada para processamento
+├── index.html             # Interface gráfica do painel de controle
+├── monitor.html           # Janela de status em tempo real
+└── extension_winthor/     # Extensão para o navegador (manifest.json, content.js)
 
----
-
-## Como ultilizar?
-
-* O uso recomendado é digitalizar a lista de codigos completa, ultilizando um aplicativo ou a própia câmera ex.: a câmera do iPhone tem essa digitalização própia: digitalize, copie o texto e cole na nota do keep (ele detecta automáticamento o código no início de cada linha, e para uso funcional o código precisa ficar no início de cada linha. Códigos fora de cada linhas pode acarretar em possíveis erros no envio dos códigos para os arquivos).
-* Outros usos possíveis: modificar o a lista de códigos pela nota do keep, no computador. Modificar o arquivo codigos.txt mantendo cada código em cada linha.
-
+```
 ---
 
 ## 📺 Vídeo Tutorial (Passo a Passo)
@@ -55,81 +73,89 @@ https://github.com/user-attachments/assets/0f0cfbe4-fb7c-4957-9b37-68f85356d64c
 
 ---
 
-## 📐 Arquitetura do Sistema
+## 🚀 Como Utilizar (Passo a Passo)
 
-1. **Extensão Web (Chrome/Edge):** Lê as notas do Google Keep e envia a lista de códigos para a API Python via requisição HTTP POST (`http://127.0.0.1:8000/update`).
-2. **Servidor Python (`servidor_keep.py`):** Servidor HTTP leve em segundo plano que recebe os códigos e atualiza dinamicamente o arquivo `codigos.txt` na pasta configurada do projeto.
-3. **Painel de Configuração (`painel_control.py`):** Interface gráfica em Python/Tkinter para gerenciamento de diretórios, escolha da impressora padrão e calibração das coordenadas da tela (1 a 9).
-4. **Script do AutoHotkey (`impressao_1707.ahk`):** Robô de automação com janela nativa de monitoramento de status. Executa o ciclo de digitação, confirmação, envio de comandos para visualização e impressão em lote no WinThor.
+### 1. Inicialização do Sistema
 
----
+1. Abra a pasta do projeto e execute o **`AUT_1707.exe`**.
+2. Clique no botão **`Iniciar Tudo`** para ativar o servidor de sincronização do Keep.
+3. Clique em **`Abrir Script AHK`** para carregar o robô e abrir a janela flutuante do **Monitor de Impressão**.
 
-##  Estrutura de Arquivos
+### 2. Sincronização via Google Keep
 
-* `impressao_1707.ahk` — Script principal do AutoHotkey (automação e interface nativa de status).
-* `servidor_keep.py` — Servidor HTTP local sem dependências externas (biblioteca nativa `http.server`).
-* `painel_control.py` — Interface gráfica para calibração de coordenadas e gerenciamento do projeto.
-* `config.json` — Arquivo de configuração dinâmico (caminhos, parâmetros e coordenadas $X, Y$).
-* `codigos.txt` — Arquivo de texto gerado automaticamente com a lista de códigos para processamento.
-* `extension_winthor/` — Pasta contendo a extensão do Chrome (`manifest.json`, `background.js`, `content.js`).
-* `AUT 1707` — Aplicativo com as funções de iniciar o servirdor, fechar todas as instâncias e configurar as preferências.
+1. Acesse o [Google Keep](https://keep.google.com/) no navegador.
+2. Abra ou crie uma nota contendo a lista dos códigos dos produtos.
+* *Dica:* Cada código deve ficar no início de uma linha. Exemplo de digitalização pela câmera do iPhone/Android: copie o texto digitalizado e cole diretamente na nota do Keep.
 
----
 
-## Dia-a-Dia
+3. O indicador **`🟢 WinThor Sync: Ativo`** surgirá no canto inferior da página, sincronizando os códigos diretamente com o arquivo `codigos.csv`.
 
-### 1. Iniciar o Sistema
-* Dê um duplo clique no arquivo **`AUT 1707.exe`**.
-* A janela do aplicativo irá abrir, clique em iniciar tudo para abrir o servidor. Clique Abrir script AHK para abrir o script do autohotkey.
-* Caso opcional: minimizar ou fechar a janela de monitoramento não intefere em como ele será executado. Esse ainda ficará ativo em segundo plano. Caso seja necessário finalizar o script: pressione F3
+### 3. Executando a Impressão em Lote
 
-### 2. Sincronizar os Produtos pelo Google Keep
-* Abra o [Google Keep](https://keep.google.com/) no navegador.
-* Abra ou crie uma nota contendo a lista dos códigos de produto (ex: nota com o título **WinThor**).
-* A extensão exibirá o indicador **`🟢 WinThor Sync: Ativo`** e atualizará o arquivo `codigos.txt` automaticamente.
-
-### 3. Executar a Impressão em Lote
-1. Deixe a **Rotina 1707** aberta no WinThor (preferencialmente maximizada).
+1. Deixe a **Rotina 1707** aberta no WinThor (preferencialmente maximizada no monitor configurado).
 2. Pressione a tecla **`F2`** no teclado.
-3. Selecione o tipo de impressão no pop-up do AHK (**Impressão Direta** ou **Universal Printer**).
+3. Selecione o modo de impressão no pop-up:
+* **Impressão Direta:** Envia direto para a impressora padrão configurada na rotina (método mais rápido).
+* **Universal Printer:** Utiliza o fluxo com o software da impressora universal (método mais lento).
 
-3.1. Impressão Direta: imprime de acordo com a sua impressora padrão, localizada na lista de impressoras da rotina 1707 ao imprimir (Processo mais rápido).
 
-3.2. Universal Printer: imprime ultilizando a impressora universal que abre um software própio e seleciona automáticamente sua impressora padrão (Processo mais lento).
+4. O robô assumirá o controle do teclado/mouse e processará cada código sequencialmente.
 
-4. O robô assumirá o controle e processará todos os códigos da lista sequencialmente.
+---
+
+## 📊 Relatórios Automáticos de Faltas/Impressão
+
+* Toda impressão concluída é registrada automaticamente em um relatório `.csv`.
+* O caminho base pode ser definido no painel em **Configurar Painel**.
+* O sistema cria automaticamente uma estrutura organizada de pastas:
+`.../Relatorios_ANO/Relatorio_MES_ANO.csv` (Exemplo: `Relatorios_2026/Relatorio_10_2026.csv`).
+* Contém as colunas: **`CODIGO;DATA;HORARIO`**, pronto para abertura no Microsoft Excel ou Google Planilhas.
 
 ---
 
 ## ⌨️ Teclas de Atalho (Hotkeys)
 
 | Tecla | Função |
-| :---: | :--- |
+| --- | --- |
 | **`F1`** | **Pausar / Retomar** a automação em tempo real. |
-| **`F2`** | **Iniciar** o processamento em lote dos códigos salvos. |
+| **`F2`** | **Iniciar** o processamento em lote dos códigos sincronizados. |
 | **`F3`** | **Fechar / Encerrar** o script do AutoHotkey. |
+| **`F4`** | **Importar Códigos do Clipboard:** Converte qualquer texto copiado com números em `codigos.csv`. |
 
 ---
 
-##  Calibração de Coordenadas (Apenas se mudar de monitor/resolução)
+## 📐 Calibração de Coordenadas (Mudança de Monitor/Resolução)
 
-Se você mudar a resolução da tela ou mover a janela do WinThor:
-1. Feche os serviços com o **`Encerrar tudo`** no aplicativo.
-2. Abra o **`Configurar Painel`**.
-3. Ao lado de cada localização do ponteiro basta clicar **Capturar** para ativar a opção de salvar o posicionamento. A janela do painel de controle é minimizada para captura.
-4. Posicione o mouse no lugar desejado e clique com o botão direito, nesse momento o painel de controle volta e altera as coordenadas desejadas.
+Se alterar a resolução do monitor ou mover a janela do WinThor:
+
+1. No **`AUT_1707.exe`**, clique em **Configurar Painel**.
+2. Clique no botão **Capturar** ao lado do campo que deseja recalibrar (a janela será minimizada).
+3. Posicione o cursor do mouse sobre o campo/botão desejado na tela do WinThor e **clique com o Botão Direito**.
+4. As coordenadas $X, Y$ serão atualizadas automaticamente.
 5. Clique em **💾 Salvar Configurações no Projeto**.
 
 ---
 
-##  Solução de Problemas Rápidos
+## 🛠️ Solução de Problemas Rápidos
 
-* **Extensão exibindo "Servidor Python desligado":** Execute o `Encerrar tudo.exe`, depois o `Iniciar tudo.exe` e pressione `F5` na aba do Google Keep.
-* **Coordenadas clicando no lugar errado:** Certifique-se de que a janela do WinThor está maximizada no mesmo monitor onde as coordenadas foram salvas.
-* **Processos presos em segundo plano:** Clique duas vezes em `Encerrar tudo.exe` para fechar todas as instâncias do Python e AutoHotkey presas na memória.
+* **Extensão indicando "Servidor Python desligado!":** Abra o `AUT_1707.exe` e confirme se clicou em **Iniciar Tudo**. Se necessário, clique em **Encerrar Tudo** e em seguida em **Iniciar Tudo**.
+* **Extensão com mensagem "Extensão recarregada! Pressione F5":** Pressione a tecla `F5` na aba do Google Keep para atualizar a conexão do script na página.
+* **Cliques fora do alvo no WinThor:** Verifique se a janela da Rotina 1707 está maximizada na mesma resolução de tela onde a calibração foi efetuada.
+* **Processo AHK preso:** O botão **Encerrar Tudo** no aplicativo fecha especificamente o script `impressao_1707.ahk` sem afetar outros scripts AHK em execução no computador.
 
 ---
 
-# Projeções
-* O intuito é conseguir automatizar o processo sendo totalmente em 2° plano, de forma que não atrapalhe outras tarefas enquanto a impressão fique em segundo plano
-* O problema: o WinThor é ultilizado de forma remota, ou seja, ele projeta um pc dentro do pc com apenas a função do WinThor. Isso dificulta a automação já que, não é possível ultilizar o pc remoto e apenas o WinThor, além disso ele precisaria de permissões de ADM para uso melhor e testes, e isso dentro da rede corporativa as vezes não é possível.
+## 🔮 Projeções de Desenvolvimento
+
+* **Execução em Segundo Plano Ativa:** Pesquisa de soluções para interação via envio de mensagens diretas de controle (`ControlClick` / `ControlSend`) nas janelas do ambiente remoto do WinThor, permitindo que o operador continue utilizando o computador durante a impressão.
+* **Tratamento Avançado de Exceções:** Identificação e desvio automático de bloqueios cadastrais ou de estoque na rotina 1707 sem interromper a fila de impressão.
+
+---
+
+## 📞 Suporte e Contato
+
+Em caso de dúvidas, sugestões ou problemas na operação:
+
+* **E-mail Corporativo:** gabriel.duarte@dellys.com.br
+* **Microsoft Teams:** D8059GD@dellys.com.br / gabriel.duarte@dellys.com.br
+* **E-mail Pessoal:** gabrieldgad2007@gmail.com
